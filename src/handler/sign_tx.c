@@ -105,9 +105,21 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
 
         G_context.state = STATE_PARSED;
 
+        // Add chain id to hash
+        uint8_t CHAIN_ID[11] = { 0, 0, 0, 7, 'T', 'E', 'S', 'T', 'N', 'E', 'T' }; // TODO?
+        status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
+                                                 (uint8_t*) CHAIN_ID,
+                                                 sizeof(CHAIN_ID));
+        if (status_hashing != CX_OK) {
+            return io_send_sw(SW_TX_HASH_FAIL);
+        }
+
         // Finalize hash
         status_hashing =
             cx_hash_final((cx_hash_t *) &G_context.tx_info.digest_state, G_context.tx_info.m_hash);
+        if (status_hashing != CX_OK) {
+            return io_send_sw(SW_TX_HASH_FAIL);
+        }
 
         PRINTF("Hash: %.*H\n", sizeof(G_context.tx_info.m_hash), G_context.tx_info.m_hash);
 

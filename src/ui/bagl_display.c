@@ -90,23 +90,25 @@ UX_FLOW(ux_display_pubkey_flow,
         &ux_display_reject_step);
 
 int ui_display_address() {
+  // Check current state
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
+
+    // Format address
     memset(g_contract_address, 0, sizeof(g_contract_address));
     uint8_t address[ADDRESS_LEN] = {0};
     if (!address_from_pubkey(G_context.pk_info.raw_public_key, address, sizeof(address))) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
-
     if (format_hex(address, sizeof(address), g_contract_address, sizeof(g_contract_address)) ==
         -1) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
+    // Start flow
     g_validate_callback = &ui_action_validate_pubkey;
-
     ux_flow_init(0, ux_display_pubkey_flow, NULL);
     return 0;
 }
@@ -141,11 +143,14 @@ UX_FLOW(ux_display_transaction_flow,
         &ux_display_reject_step);
 
 int ui_display_transaction() {
+
+  // Check current state
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
 
+    // Format gas cost
     memset(g_gas_cost, 0, sizeof(g_gas_cost));
     char amount[30] = {0};
     if (!format_fpu64(amount,
@@ -157,8 +162,8 @@ int ui_display_transaction() {
     snprintf(g_gas_cost, sizeof(g_gas_cost), "%.*s", sizeof(amount), amount);
     PRINTF("Gas Cost: %s\n", g_gas_cost);
 
+    // Format contract address
     memset(g_contract_address, 0, sizeof(g_contract_address));
-
     if (format_hex(G_context.tx_info.transaction.contract_address,
                    ADDRESS_LEN,
                    g_contract_address,
@@ -166,10 +171,9 @@ int ui_display_transaction() {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
+    // Setup UI flow
     g_validate_callback = &ui_action_validate_transaction;
-
     ux_flow_init(0, ux_display_transaction_flow, NULL);
-
     return 0;
 }
 

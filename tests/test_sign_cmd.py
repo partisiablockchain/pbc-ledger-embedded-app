@@ -17,7 +17,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = BoilerplateCommandSender(backend)
     # The path used for this entire test
-    path: str = "m/44'/1'/0'/0/0"
+    path: str = "m/3757'/1'/0'/0/0"
 
     # First we need to get the public key of the device in order to build the transaction
     rapdu = client.get_public_key(path=path)
@@ -65,7 +65,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
 def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = BoilerplateCommandSender(backend)
-    path: str = "m/44'/1'/0'/0/0"
+    path: str = "m/3757'/1'/0'/0/0"
 
     rapdu = client.get_public_key(path=path)
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
@@ -104,7 +104,7 @@ def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
 def test_sign_tx_refused(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = BoilerplateCommandSender(backend)
-    path: str = "m/44'/1'/0'/0/0"
+    path: str = "m/3757'/1'/0'/0/0"
 
     rapdu = client.get_public_key(path=path)
     _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)

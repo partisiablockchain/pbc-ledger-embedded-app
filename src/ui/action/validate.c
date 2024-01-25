@@ -37,6 +37,7 @@ static int crypto_sign_message(void) {
     uint32_t info = 0;
     size_t sig_len = sizeof(G_context.tx_info.signature);
 
+    // Derives private key and signs the hash.
     cx_err_t error = bip32_derive_ecdsa_sign_hash_256(CX_CURVE_256K1,
                                                       G_context.bip32_path,
                                                       G_context.bip32_path_len,
