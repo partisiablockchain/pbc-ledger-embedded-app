@@ -55,7 +55,7 @@ void ui_menu_main(void) {
 //  -----------------------------------------------------------
 
 static const char* const INFO_TYPES[] = {"Version", "Developer"};
-static const char* const INFO_CONTENTS[] = {APPVERSION, "Ledger"};
+static const char* const INFO_CONTENTS[] = {APPVERSION, "Partisia Blockchain"};
 
 // settings switches definitions
 enum { DUMMY_SWITCH_1_TOKEN = FIRST_USER_TOKEN, DUMMY_SWITCH_2_TOKEN };
