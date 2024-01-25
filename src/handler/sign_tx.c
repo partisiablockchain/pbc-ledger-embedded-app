@@ -32,14 +32,14 @@
 #include "../transaction/deserialize.h"
 
 int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks_after_this_one) {
-  // 1. Read initial block requesting signing
-  // 2. While reading blocks containing transaction contents
-  // 2.1. Read block
-  // 2.2. Parse block
-  // 2.3. Digest block
-  // 3. Display parsed information (possibly very little if parser didn't
-  //    recognize the transaction.)
-  // 4. When accepted: Sign and return
+    // 1. Read initial block requesting signing
+    // 2. While reading blocks containing transaction contents
+    // 2.1. Read block
+    // 2.2. Parse block
+    // 2.3. Digest block
+    // 3. Display parsed information (possibly very little if parser didn't
+    //    recognize the transaction.)
+    // 4. When accepted: Sign and return
 
     // first chunk, parse BIP32 path
     if (chunk_idx == 0) {
@@ -54,42 +54,42 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
 
         // Read BIP-32 path
         if (!buffer_read_bip32_path(chunk_data,
-                                      G_context.bip32_path,
-                                      (size_t) G_context.bip32_path_len)) {
+                                    G_context.bip32_path,
+                                    (size_t) G_context.bip32_path_len)) {
             return io_send_sw(SW_WRONG_DATA_LENGTH);
         }
 
         // Initial hashing context in preparation
         if (cx_hash_init_((cx_hash_t *) &G_context.tx_info.digest_state, CX_SHA256) != CX_OK) {
-          return false;
+            return false;
         }
 
         return io_send_sw(SW_OK);
 
-    // parse transaction chunk
+        // parse transaction chunk
     } else {
-
-      // Check that state is consistent
+        // Check that state is consistent
         if (G_context.req_type != CONFIRM_TRANSACTION) {
             return io_send_sw(SW_BAD_STATE);
         }
 
         // Update parsing state
-        parser_status_t status_parsing = transaction_deserialize(chunk_data, &C_context.tx_info.transaction);
-        PRINTF("Parsing status: %d.\n", status_parsing );
+        parser_status_t status_parsing =
+            transaction_deserialize(chunk_data, &C_context.tx_info.transaction);
+        PRINTF("Parsing status: %d.\n", status_parsing);
 
-        if (status_parsing  != PARSING_OK) {
+        if (status_parsing != PARSING_OK) {
             return io_send_sw(SW_TX_PARSING_FAIL);
         }
 
         // Update hash digest
         bool initialize_sha256 = chunk_idx == 1;
         cx_err_t status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
-                              chunk_data->ptr,
-                              chunk_data->size);
+                                                 chunk_data->ptr,
+                                                 chunk_data->size);
 
         PRINTF("Digest status: %d.\n", status_hashing);
-        if (status_hashing  != CX_OK) {
+        if (status_hashing != CX_OK) {
             return io_send_sw(SW_TX_HASH_FAIL);
         }
 
@@ -102,8 +102,8 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         G_context.state = STATE_PARSED;
 
         // Finalize hash
-        status_hashing = cx_hash_final((cx_hash_t *) &G_context.tx_info.digest_state,
-                              &G_context.tx_info.m_hash);
+        status_hashing =
+            cx_hash_final((cx_hash_t *) &G_context.tx_info.digest_state, &G_context.tx_info.m_hash);
 
         PRINTF("Hash: %.*H\n", sizeof(G_context.tx_info.m_hash), G_context.tx_info.m_hash);
 
