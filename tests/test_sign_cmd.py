@@ -1,6 +1,6 @@
 import pytest
 
-from application_client.boilerplate_transaction import Transaction
+from application_client.transaction import Transaction
 from application_client.boilerplate_command_sender import BoilerplateCommandSender, Errors
 from application_client.boilerplate_response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
@@ -9,6 +9,10 @@ from utils import ROOT_SCREENSHOT_PATH, check_signature_validity
 
 # In this tests we check the behavior of the device when asked to sign a transaction
 
+
+def from_hex(hex_addr: str) -> bytes:
+    assert hex_addr.startswith('0x')
+    return bytes.fromhex(hex_addr[2:])
 
 # In this test se send to the device a transaction to sign and validate it on screen
 # The transaction is short and will be sent in one chunk
@@ -26,9 +30,10 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
     # Create the transaction that will be sent to the device for signing
     transaction = Transaction(
         nonce=1,
-        to="0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
-        value=666,
-        memo="For u EthDev"
+        valid_to_time = 999,
+        gas_cost = 444,
+        contract_address=from_hex("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
+        rpc = from_hex('0xdeadbeef'),
     ).serialize()
 
     # Send the sign device instruction.

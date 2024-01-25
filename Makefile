@@ -56,7 +56,7 @@ CURVE_APP_LOAD_PARAMS = secp256k1
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
 # `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "3757'/0'"   # purpose=coin(3757) / coin_type=Testnet(0)
+PATH_APP_LOAD_PARAMS = "3757'/1'"   # purpose=coin(3757) / coin_type=Testnet(1)
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set
@@ -65,10 +65,10 @@ PATH_APP_LOAD_PARAMS = "3757'/0'"   # purpose=coin(3757) / coin_type=Testnet(0)
 #   * It must at least contains one value.
 #   * Values can be the app ticker or anything else but should be unique.
 VARIANT_PARAM = COIN
-VARIANT_VALUES = BOL
+VARIANT_VALUES = MPC
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
-#DEBUG = 1
+DEBUG = 1
 
 ########################################
 #     Application custom permissions   #

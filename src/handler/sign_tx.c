@@ -61,7 +61,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
 
         // Initial hashing context in preparation
         if (cx_hash_init((cx_hash_t *) &G_context.tx_info.digest_state, CX_SHA256) != CX_OK) {
-            return false;
+            return io_send_sw(SW_TX_HASH_FAIL);
         }
 
         return io_send_sw(SW_OK);
@@ -81,10 +81,10 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         PRINTF("Parsing status: %d.\n", status_parsing);
 
         if (status_parsing < 0) {
-            return io_send_sw(SW_TX_PARSING_FAIL);
+            return io_send_sw(SW_TX_PARSING_FAIL | -status_parsing);
         } else if (status_parsing == PARSING_CONTINUE && !anymore_blocks_after_this_one) {
             // Transaction parser expected more data, but there is no more data.
-            return io_send_sw(SW_TX_PARSING_FAIL);
+            return io_send_sw(SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA);
         }
 
         // Update hash digest
@@ -106,10 +106,10 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         G_context.state = STATE_PARSED;
 
         // Add chain id to hash
-        uint8_t CHAIN_ID[11] = { 0, 0, 0, 7, 'T', 'E', 'S', 'T', 'N', 'E', 'T' }; // TODO?
+        uint8_t CHAIN_ID[11] = {0, 0, 0, 7, 'T', 'E', 'S', 'T', 'N', 'E', 'T'};  // TODO?
         status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
-                                                 (uint8_t*) CHAIN_ID,
-                                                 sizeof(CHAIN_ID));
+                                        (uint8_t *) CHAIN_ID,
+                                        sizeof(CHAIN_ID));
         if (status_hashing != CX_OK) {
             return io_send_sw(SW_TX_HASH_FAIL);
         }

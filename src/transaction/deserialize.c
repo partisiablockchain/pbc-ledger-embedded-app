@@ -52,34 +52,36 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
 
         // nonce
         if (!buffer_read_u64(chunk, &tx->nonce, BE)) {
-            return PARSING_FAILED;
+            return PARSING_FAILED_NONCE;
         }
 
         // valid-to time
         if (!buffer_read_u64(chunk, &tx->valid_to_time, BE)) {
-            return PARSING_FAILED;
+            return PARSING_FAILED_VALID_TO_TIME;
         }
 
-        // amount value
+        // gas cost
         if (!buffer_read_u64(chunk, &tx->gas_cost, BE)) {
-            return PARSING_FAILED;
+            return PARSING_FAILED_GAS_COST;
         }
 
         // Contract address
         // TODO: tx->contract_address = (uint8_t *) (chunk->ptr + chunk->offset);
         if (!buffer_seek_cur(chunk, ADDRESS_LEN)) {
-            return PARSING_FAILED;
+            return PARSING_FAILED_CONTRACT_ADDRESS;
         }
 
         // Parse RPC length
-        buffer_read_u32(chunk, &state->rpc_bytes_total, BE);
+        if (!buffer_read_u32(chunk, &state->rpc_bytes_total, BE)) {
+            return PARSING_FAILED_RPC_LENGTH;
+        }
     }
 
     // Skip over RPC
     uint32_t skip_amount =
         min(chunk->size - chunk->offset, state->rpc_bytes_total - state->rpc_bytes_parsed);
     if (!buffer_seek_cur(chunk, skip_amount)) {
-        return PARSING_FAILED;
+        return PARSING_FAILED_RPC_DATA;
     }
 
     return state->rpc_bytes_total == state->rpc_bytes_parsed ? PARSING_DONE : PARSING_CONTINUE;

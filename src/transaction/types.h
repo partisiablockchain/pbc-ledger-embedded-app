@@ -29,7 +29,12 @@ typedef struct {
 typedef enum {
     PARSING_DONE = 1,     // Parsing finished.
     PARSING_CONTINUE = 2, // Parsing is not done.
-    PARSING_FAILED = -1   // Some error occured while parsing.
+    PARSING_FAILED_NONCE = -1,
+    PARSING_FAILED_VALID_TO_TIME = -2,
+    PARSING_FAILED_GAS_COST = -3,
+    PARSING_FAILED_CONTRACT_ADDRESS = -4,
+    PARSING_FAILED_RPC_LENGTH = -5,
+    PARSING_FAILED_RPC_DATA = -6,
 } parser_status_e;
 
 
