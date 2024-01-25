@@ -9,23 +9,29 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
 
-#define MAX_TX_LEN   510  // TODO
 #define ADDRESS_LEN  21   // TODO
 #define MAX_MEMO_LEN 465  // TODO
+
+/**
+ * Stores the state of the parser.
+ *
+ * The transaction parser is capable of parsing a streaming manner.
+ */
+typedef struct {
+  uint32_t rpc_bytes_total;     // Number of RPC bytes declared for the RPC.
+  uint32_t rpc_bytes_parsed;    // Number of RPC bytes read.
+  bool first_block_parsed;
+} transaction_parsing_state_t;
 
 /**
  * Parsing error messages.
  */
 typedef enum {
-    PARSING_OK = 1,
-    NONCE_PARSING_ERROR = -1,
-    TO_PARSING_ERROR = -2,
-    VALUE_PARSING_ERROR = -3,
-    MEMO_LENGTH_ERROR = -4,
-    MEMO_PARSING_ERROR = -5,
-    MEMO_ENCODING_ERROR = -6,
-    WRONG_LENGTH_ERROR = -7
+    PARSING_DONE = 1,     // Parsing finished.
+    PARSING_CONTINUE = 2, // Parsing is not done.
+    PARSING_FAILED = -1   // Some error occured while parsing.
 } parser_status_e;
+
 
 /**
  * Short id representing the chain that a transaction is targeting.
@@ -45,8 +51,8 @@ typedef struct {
   uint64_t nonce;                         /// nonce (8 bytes)
   uint64_t valid_to_time;                 /// last block height that transaction is valid for (8 bytes)
   uint64_t gas_cost;                      /// amount of gas to be used for this transaction (8 bytes)
-  uint8_t[ADDRESS_LEN] contract_address;  /// contract address to interact with (ADDRESS_LEN bytes)
+  uint8_t contract_address[ADDRESS_LEN];  /// contract address to interact with (ADDRESS_LEN bytes)
   chain_id_t chain_id;                    /// which chain the transaction is targeting (1 byte)
   /// Does not include RPC. Is handled separately
-} transaction_basics_t;
+} transaction_t; // TODO: transaction_t is a bit disengenious
 

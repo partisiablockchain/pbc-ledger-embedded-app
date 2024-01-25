@@ -60,7 +60,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         }
 
         // Initial hashing context in preparation
-        if (cx_hash_init_((cx_hash_t *) &G_context.tx_info.digest_state, CX_SHA256) != CX_OK) {
+        if (cx_hash_init((cx_hash_t *) &G_context.tx_info.digest_state, CX_SHA256) != CX_OK) {
             return false;
         }
 
@@ -74,16 +74,20 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         }
 
         // Update parsing state
-        parser_status_t status_parsing =
-            transaction_deserialize(chunk_data, &C_context.tx_info.transaction);
+        parser_status_e status_parsing =
+            transaction_parser_update(&G_context.tx_info.transaction_parser_state,
+                                      chunk_data,
+                                      &G_context.tx_info.transaction);
         PRINTF("Parsing status: %d.\n", status_parsing);
 
-        if (status_parsing != PARSING_OK) {
+        if (status_parsing < 0) {
+            return io_send_sw(SW_TX_PARSING_FAIL);
+        } else if (status_parsing == PARSING_CONTINUE && !anymore_blocks_after_this_one) {
+            // Transaction parser expected more data, but there is no more data.
             return io_send_sw(SW_TX_PARSING_FAIL);
         }
 
         // Update hash digest
-        bool initialize_sha256 = chunk_idx == 1;
         cx_err_t status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
                                                  chunk_data->ptr,
                                                  chunk_data->size);
@@ -103,7 +107,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
 
         // Finalize hash
         status_hashing =
-            cx_hash_final((cx_hash_t *) &G_context.tx_info.digest_state, &G_context.tx_info.m_hash);
+            cx_hash_final((cx_hash_t *) &G_context.tx_info.digest_state, G_context.tx_info.m_hash);
 
         PRINTF("Hash: %.*H\n", sizeof(G_context.tx_info.m_hash), G_context.tx_info.m_hash);
 

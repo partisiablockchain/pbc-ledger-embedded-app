@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
+#include <string.h>
 #include "buffer.h"
 
 #include "deserialize.h"
@@ -27,47 +28,59 @@
 #include "ledger_assert.h"
 #endif
 
-parser_status_e transaction_deserialize(buffer_t *buf, transaction_basics_t *tx) {
-    LEDGER_ASSERT(buf != NULL, "NULL buf");
+void transaction_parser_init(transaction_parsing_state_t *state) {
+    // TODO?
+    explicit_bzero(state, sizeof(*state));
+}
+
+uint32_t min(uint32_t a, uint32_t b) {
+    return a < b ? a : b;
+}
+
+parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
+                                          buffer_t *chunk,
+                                          transaction_t *tx) {
+    LEDGER_ASSERT(state != NULL, "NULL state");
+    LEDGER_ASSERT(chunk != NULL, "NULL chunk");
     LEDGER_ASSERT(tx != NULL, "NULL tx");
 
-    // Too long?
-    if (buf->size > MAX_TX_LEN) {
-        return WRONG_LENGTH_ERROR;
+    // First block
+    if (!state->first_block_parsed) {
+        state->first_block_parsed = true;
+
+        tx->chain_id = TESTNET;  // TODO
+
+        // nonce
+        if (!buffer_read_u64(chunk, &tx->nonce, BE)) {
+            return PARSING_FAILED;
+        }
+
+        // valid-to time
+        if (!buffer_read_u64(chunk, &tx->valid_to_time, BE)) {
+            return PARSING_FAILED;
+        }
+
+        // amount value
+        if (!buffer_read_u64(chunk, &tx->gas_cost, BE)) {
+            return PARSING_FAILED;
+        }
+
+        // Contract address
+        // TODO: tx->contract_address = (uint8_t *) (chunk->ptr + chunk->offset);
+        if (!buffer_seek_cur(chunk, ADDRESS_LEN)) {
+            return PARSING_FAILED;
+        }
+
+        // Parse RPC length
+        buffer_read_u32(chunk, &state->rpc_bytes_total, BE);
     }
 
-    // nonce
-    if (!buffer_read_u64(buf, &tx->nonce, BE)) {
-        return NONCE_PARSING_ERROR;
+    // Skip over RPC
+    uint32_t skip_amount =
+        min(chunk->size - chunk->offset, state->rpc_bytes_total - state->rpc_bytes_parsed);
+    if (!buffer_seek_cur(chunk, skip_amount)) {
+        return PARSING_FAILED;
     }
 
-    tx->to = (uint8_t *) (buf->ptr + buf->offset);
-
-    // TO address
-    if (!buffer_seek_cur(buf, ADDRESS_LEN)) {
-        return TO_PARSING_ERROR;
-    }
-
-    // amount value
-    if (!buffer_read_u64(buf, &tx->value, BE)) {
-        return VALUE_PARSING_ERROR;
-    }
-
-    // length of memo
-    if (!buffer_read_varint(buf, &tx->memo_len) && tx->memo_len > MAX_MEMO_LEN) {
-        return MEMO_LENGTH_ERROR;
-    }
-
-    // memo
-    tx->memo = (uint8_t *) (buf->ptr + buf->offset);
-
-    if (!buffer_seek_cur(buf, tx->memo_len)) {
-        return MEMO_PARSING_ERROR;
-    }
-
-    if (!transaction_utils_check_encoding(tx->memo, tx->memo_len)) {
-        return MEMO_ENCODING_ERROR;
-    }
-
-    return (buf->offset == buf->size) ? PARSING_OK : WRONG_LENGTH_ERROR;
+    return state->rpc_bytes_total == state->rpc_bytes_parsed ? PARSING_DONE : PARSING_CONTINUE;
 }

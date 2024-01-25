@@ -37,8 +37,8 @@
 #include "../menu.h"
 
 static action_validate_cb g_validate_callback;
-static char g_amount[30];
-static char g_address[43];
+static char g_gas_cost[30];
+static char g_contract_address[43];
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -53,13 +53,13 @@ static void ui_action_validate_transaction(bool choice) {
 }
 
 // Step with icon and text
-UX_STEP_NOCB(ux_display_confirm_addr_step, pn, {&C_icon_eye, "Confirm Address"});
+UX_STEP_NOCB(ux_display_confirm_addr_step, pn, {&C_icon_eye, "Confirm Transaction"});
 // Step with title/text for address
 UX_STEP_NOCB(ux_display_address_step,
              bnnn_paging,
              {
-                 .title = "Address",
-                 .text = g_address,
+                 .title = "Contract",
+                 .text = g_contract_address,
              });
 // Step with approve button
 UX_STEP_CB(ux_display_approve_step,
@@ -79,7 +79,7 @@ UX_STEP_CB(ux_display_reject_step,
            });
 
 // FLOW to display address:
-// #1 screen: eye icon + "Confirm Address"
+// #1 screen: eye icon + "Confirm Transaction"
 // #2 screen: display address
 // #3 screen: approve button
 // #4 screen: reject button
@@ -94,13 +94,14 @@ int ui_display_address() {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
-    memset(g_address, 0, sizeof(g_address));
+    memset(g_contract_address, 0, sizeof(g_contract_address));
     uint8_t address[ADDRESS_LEN] = {0};
     if (!address_from_pubkey(G_context.pk_info.raw_public_key, address, sizeof(address))) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
-    if (format_hex(address, sizeof(address), g_address, sizeof(g_address)) == -1) {
+    if (format_hex(address, sizeof(address), g_contract_address, sizeof(g_contract_address)) ==
+        -1) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
@@ -122,8 +123,8 @@ UX_STEP_NOCB(ux_display_review_step,
 UX_STEP_NOCB(ux_display_amount_step,
              bnnn_paging,
              {
-                 .title = "Amount",
-                 .text = g_amount,
+                 .title = "Gas Cost",
+                 .text = g_gas_cost,
              });
 
 // FLOW to display transaction information:
@@ -145,21 +146,23 @@ int ui_display_transaction() {
         return io_send_sw(SW_BAD_STATE);
     }
 
-    memset(g_amount, 0, sizeof(g_amount));
+    memset(g_gas_cost, 0, sizeof(g_gas_cost));
     char amount[30] = {0};
     if (!format_fpu64(amount,
                       sizeof(amount),
-                      G_context.tx_info.transaction.value,
+                      G_context.tx_info.transaction.gas_cost,
                       EXPONENT_SMALLEST_UNIT)) {
         return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
     }
-    snprintf(g_amount, sizeof(g_amount), "BOL %.*s", sizeof(amount), amount);
-    PRINTF("Amount: %s\n", g_amount);
+    snprintf(g_gas_cost, sizeof(g_gas_cost), "%.*s", sizeof(amount), amount);
+    PRINTF("Gas Cost: %s\n", g_gas_cost);
 
-    memset(g_address, 0, sizeof(g_address));
+    memset(g_contract_address, 0, sizeof(g_contract_address));
 
-    if (format_hex(G_context.tx_info.transaction.to, ADDRESS_LEN, g_address, sizeof(g_address)) ==
-        -1) {
+    if (format_hex(G_context.tx_info.transaction.contract_address,
+                   ADDRESS_LEN,
+                   g_contract_address,
+                   sizeof(g_contract_address)) == -1) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
