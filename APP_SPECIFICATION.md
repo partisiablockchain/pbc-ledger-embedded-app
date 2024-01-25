@@ -94,7 +94,6 @@ The input data is the RLP encoded transaction streamed to the device in 255 byte
 | Signature                                            | variable |
 | v                                                    | 1        |
 
-
 ### GET APP VERSION
 
 #### Description

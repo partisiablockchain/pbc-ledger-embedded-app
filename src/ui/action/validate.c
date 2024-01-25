@@ -21,7 +21,7 @@
 
 #include "validate.h"
 #include "../menu.h"
-#include "../../sw.h"
+#include "../../status_words.h"
 #include "../../globals.h"
 #include "../../helper/send_response.h"
 

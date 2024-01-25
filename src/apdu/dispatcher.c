@@ -26,7 +26,7 @@
 #include "../constants.h"
 #include "../globals.h"
 #include "../types.h"
-#include "../sw.h"
+#include "../status_words.h"
 #include "../handler/get_version.h"
 #include "../handler/get_app_name.h"
 #include "../handler/get_public_key.h"

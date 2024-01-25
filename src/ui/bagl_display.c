@@ -30,7 +30,7 @@
 #include "display.h"
 #include "constants.h"
 #include "../globals.h"
-#include "../sw.h"
+#include "../status_words.h"
 #include "../address.h"
 #include "action/validate.h"
 #include "../transaction/types.h"

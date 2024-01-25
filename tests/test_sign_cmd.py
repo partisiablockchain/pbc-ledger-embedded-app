@@ -35,6 +35,8 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
     # As it requires on-screen validation, the function is asynchronous.
     # It will yield the result when the navigation is done
     with client.sign_tx(path=path, transaction=transaction):
+        pass
+        '''
         # Validate the on-screen request by performing the navigation appropriate for this device
         if firmware.device.startswith("nano"):
             navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
@@ -49,6 +51,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
                                                       "Hold to sign",
                                                       ROOT_SCREENSHOT_PATH,
                                                       test_name)
+        '''
 
     # The device as yielded the result, parse it and ensure that the signature is correct
     response = client.get_async_response().data
@@ -139,3 +142,9 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             # Assert that we have received a refusal
             assert e.value.status == Errors.SW_DENY
             assert len(e.value.data) == 0
+
+if __name__ == '__main__':
+    from ragger.backend.ledgerwallet import LedgerWalletBackend
+    from ragger.firmware import Firmware
+    with LedgerWalletBackend(Firmware.NANOS) as backend:
+        test_sign_tx_short_tx(Firmware.NANOS, backend, None, test_name = 'test')

@@ -24,7 +24,7 @@
 #include "types.h"
 #include "globals.h"
 #include "io.h"
-#include "sw.h"
+#include "status_words.h"
 #include "ui/menu.h"
 #include "apdu/dispatcher.h"
 

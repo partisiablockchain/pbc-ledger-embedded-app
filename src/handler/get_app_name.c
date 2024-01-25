@@ -23,7 +23,7 @@
 #include "get_app_name.h"
 #include "../constants.h"
 #include "../globals.h"
-#include "../sw.h"
+#include "../status_words.h"
 #include "../types.h"
 
 int handler_get_app_name() {

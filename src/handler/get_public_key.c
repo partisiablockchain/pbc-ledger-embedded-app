@@ -29,7 +29,7 @@
 #include "get_public_key.h"
 #include "../globals.h"
 #include "../types.h"
-#include "../sw.h"
+#include "../status_words.h"
 #include "../ui/display.h"
 #include "../helper/send_response.h"
 
