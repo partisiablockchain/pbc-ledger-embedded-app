@@ -29,11 +29,10 @@
 #endif
 
 void transaction_parser_init(transaction_parsing_state_t *state) {
-    // TODO?
     explicit_bzero(state, sizeof(*state));
 }
 
-uint32_t min(uint32_t a, uint32_t b) {
+static uint32_t min(uint32_t a, uint32_t b) {
     return a < b ? a : b;
 }
 
@@ -49,6 +48,13 @@ static bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
     return buffer_seek_cur(buffer, out_len);
 }
 
+/**
+ * Reads a contract_address_s from the given buffer.
+ */
+static bool buffer_read_contract_address(buffer_t *buffer, blockchain_address_s *out) {
+    return buffer_read_bytes(buffer, out->raw_bytes, ADDRESS_LEN);
+}
+
 parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
                                           buffer_t *chunk,
                                           transaction_t *tx) {
@@ -60,25 +66,25 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
     if (!state->first_block_parsed) {
         state->first_block_parsed = true;
 
-        tx->chain_id = TESTNET;  // TODO
+        tx->basic.chain_id = TESTNET;  // TODO
 
         // nonce
-        if (!buffer_read_u64(chunk, &tx->nonce, BE)) {
+        if (!buffer_read_u64(chunk, &tx->basic.nonce, BE)) {
             return PARSING_FAILED_NONCE;
         }
 
         // valid-to time
-        if (!buffer_read_u64(chunk, &tx->valid_to_time, BE)) {
+        if (!buffer_read_u64(chunk, &tx->basic.valid_to_time, BE)) {
             return PARSING_FAILED_VALID_TO_TIME;
         }
 
         // gas cost
-        if (!buffer_read_u64(chunk, &tx->gas_cost, BE)) {
+        if (!buffer_read_u64(chunk, &tx->basic.gas_cost, BE)) {
             return PARSING_FAILED_GAS_COST;
         }
 
         // Contract address
-        if (!buffer_read_bytes(chunk, tx->contract_address, ADDRESS_LEN)) {
+        if (!buffer_read_contract_address(chunk, &tx->basic.contract_address)) {
             return PARSING_FAILED_CONTRACT_ADDRESS;
         }
 

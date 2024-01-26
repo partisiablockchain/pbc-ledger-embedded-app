@@ -28,31 +28,22 @@
 
 #include "transaction/types.h"
 
-bool address_from_pubkey(const uint8_t public_key[static 65], uint8_t *out, size_t out_len) {
-  // TODO!!!
-    uint8_t address[32] = {0};
-    cx_sha3_t keccak256;
-
+bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
+                                    blockchain_address_s *out) {
     LEDGER_ASSERT(out != NULL, "NULL out");
 
-    if (out_len < ADDRESS_LEN) {
+    out->raw_bytes[0] = BLOCKCHAIN_ADDRESS_ACCOUNT;
+
+    cx_sha256_t digest;
+
+    if (cx_hash_init((cx_hash_t *) &digest, CX_SHA256) != CX_OK) {
         return false;
     }
 
-    if (cx_keccak_init_no_throw(&keccak256, 256) != CX_OK) {
-        return false;
-    }
-
-    if (cx_hash_no_throw((cx_hash_t *) &keccak256,
-                         CX_LAST,
-                         public_key + 1,
-                         64,
-                         address,
-                         sizeof(address)) != CX_OK) {
-        return false;
-    }
-
-    memmove(out, address + sizeof(address) - ADDRESS_LEN, ADDRESS_LEN);
-
-    return true;
+    return cx_hash_no_throw((cx_hash_t *) &digest,
+                            CX_LAST,
+                            public_key + 1,
+                            64,
+                            out->raw_bytes+1,
+                            IDENTIFIER_LEN) != CX_OK;
 }

@@ -74,16 +74,3 @@ class Transaction:
                          data=self.serialize_for_signing(),
                          hashfunc=sha256,
                          sigdecode=sigdecode_der)
-
-    ''' TODO
-    @classmethod
-    def from_bytes(cls, hexa: Union[bytes, BytesIO]):
-        buf: BytesIO = BytesIO(hexa) if isinstance(hexa, bytes) else hexa
-
-        nonce: int = read_uint(buf, 64, byteorder="big")
-        to: bytes = read(buf, 20)
-        value: int = read_uint(buf, 64, byteorder="big")
-        memo: str = read(buf, memo_len).decode("ascii")
-
-        return cls(nonce=nonce, to=to, value=value, memo=memo)
-    '''
