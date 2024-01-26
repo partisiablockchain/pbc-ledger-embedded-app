@@ -42,3 +42,8 @@ typedef struct {
  *
  */
 bool blockchain_address_from_pubkey(const uint8_t public_key[static 65], blockchain_address_s *out);
+
+/**
+ * Checks whether two blockchain_address_s are equals.
+ */
+bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s* b);

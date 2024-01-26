@@ -12,8 +12,9 @@
 
 #include "address.h"
 
-#define MAX_MEMO_LEN   465  // TODO
-                            //
+#define MAX_MEMO_LEN \
+    465  // TODO
+         //
 
 /**
  * Stores the state of the parser.
@@ -45,10 +46,9 @@ typedef enum {
  * these will be sorted as GENERIC.
  */
 typedef enum {
-    GENERIC = 0,  // A transaction to an arbitrary contract. Requires blind-signing
+    GENERIC_TRANSACTION = 0,  // A transaction to an arbitrary contract. Requires blind-signing
     MPC_TRANSFER = 1
-}
-transaction_type_e;
+} transaction_type_e;
 
 /**
  *
@@ -56,6 +56,10 @@ transaction_type_e;
 typedef struct {
     blockchain_address_s recipient_address;  // Recipient of the MPC tokens.
     uint64_t token_amount;                   // Amount of MPC tokens sent
+    uint8_t memo_length;                     // Length of associated memo.
+                                             // Possibly cut off.
+    uint8_t memo[20];                        // Contents of associated memo
+                                             // Possibly cut off.
 } mpc_transfer_transaction_type_s;
 
 /**
@@ -93,6 +97,6 @@ typedef struct {
     transaction_basic_t basic;  // Basic information
     transaction_type_e type;    // The type of the parsed transaction
     union {
-      mpc_transfer_transaction_type_s mpc_transfer; // Only when type == MPC_TRANSFER
+        mpc_transfer_transaction_type_s mpc_transfer;  // Only when type == MPC_TRANSFER
     };
 } transaction_t;

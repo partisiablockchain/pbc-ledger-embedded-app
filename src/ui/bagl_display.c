@@ -158,6 +158,8 @@ int ui_display_transaction() {
     // Format gas cost
     memset(g_gas_cost, 0, sizeof(g_gas_cost));
     char amount[30] = {0};
+
+    // TODO: Remove weird unit system or replace with K/M/G etc.
     if (!format_fpu64(amount,
                       sizeof(amount),
                       G_context.tx_info.transaction.basic.gas_cost,
