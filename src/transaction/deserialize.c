@@ -37,6 +37,18 @@ uint32_t min(uint32_t a, uint32_t b) {
     return a < b ? a : b;
 }
 
+/**
+ * Reads out_len bytes to the out buffer
+ */
+static bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
+    if (!buffer_can_read(buffer, out_len)) {
+        return false;
+    }
+
+    memmove(out, buffer->ptr + buffer->offset, out_len);
+    return buffer_seek_cur(buffer, out_len);
+}
+
 parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
                                           buffer_t *chunk,
                                           transaction_t *tx) {
@@ -66,8 +78,7 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
         }
 
         // Contract address
-        // TODO: tx->contract_address = (uint8_t *) (chunk->ptr + chunk->offset);
-        if (!buffer_seek_cur(chunk, ADDRESS_LEN)) {
+        if (!buffer_read_bytes(chunk, tx->contract_address, ADDRESS_LEN)) {
             return PARSING_FAILED_CONTRACT_ADDRESS;
         }
 
@@ -83,6 +94,7 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
     if (!buffer_seek_cur(chunk, skip_amount)) {
         return PARSING_FAILED_RPC_DATA;
     }
+    state->rpc_bytes_parsed += skip_amount;
 
     return state->rpc_bytes_total == state->rpc_bytes_parsed ? PARSING_DONE : PARSING_CONTINUE;
 }

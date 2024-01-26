@@ -1,18 +1,11 @@
 import pytest
 
-from application_client.transaction import Transaction
+from application_client.transaction import Transaction, from_hex
 from application_client.boilerplate_command_sender import BoilerplateCommandSender, Errors
 from application_client.boilerplate_response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID
-from utils import ROOT_SCREENSHOT_PATH, check_signature_validity
-
-# In this tests we check the behavior of the device when asked to sign a transaction
-
-
-def from_hex(hex_addr: str) -> bytes:
-    assert hex_addr.startswith('0x')
-    return bytes.fromhex(hex_addr[2:])
+from utils import ROOT_SCREENSHOT_PATH
 
 # In this test se send to the device a transaction to sign and validate it on screen
 # The transaction is short and will be sent in one chunk
@@ -29,17 +22,19 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
 
     # Create the transaction that will be sent to the device for signing
     transaction = Transaction(
-        nonce=1,
-        valid_to_time = 999,
-        gas_cost = 444,
-        contract_address=from_hex("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
+        nonce=0x111,
+        valid_to_time = 0x222,
+        gas_cost = 0x333,
+        contract_address=from_hex("0x01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
         rpc = from_hex('0xdeadbeef'),
-    ).serialize()
+        chain_id = b'TESTNET', # TODO?
+    )
+    transaction_bytes = transaction.serialize()
 
     # Send the sign device instruction.
     # As it requires on-screen validation, the function is asynchronous.
     # It will yield the result when the navigation is done
-    with client.sign_tx(path=path, transaction=transaction):
+    with client.sign_tx(path=path, transaction=transaction_bytes):
         pass
         '''
         # Validate the on-screen request by performing the navigation appropriate for this device
@@ -61,7 +56,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
     # The device as yielded the result, parse it and ensure that the signature is correct
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
-    assert check_signature_validity(public_key, der_sig, transaction)
+    assert transaction.verify_signature(public_key, der_sig)
 
 
 # In this test se send to the device a transaction to sign and validate it on screen
@@ -83,9 +78,10 @@ def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
               "It will force the app client to send the serialized transaction to be sent in chunk. "
               "As the maximum chunk size is 255 bytes we will make this memo greater than 255 characters. "
               "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam.")
-    ).serialize()
+    )
+    transaction_bytes = transaction.serialize()
 
-    with client.sign_tx(path=path, transaction=transaction):
+    with client.sign_tx(path=path, transaction=transaction_bytes):
         if firmware.device.startswith("nano"):
             navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
                                                       [NavInsID.BOTH_CLICK],
@@ -101,7 +97,7 @@ def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
                                                       test_name)
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
-    assert check_signature_validity(public_key, der_sig, transaction)
+    assert transaction.verify_signature(public_key, der_sig)
 
 
 # Transaction signature refused test
