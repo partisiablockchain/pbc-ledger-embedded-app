@@ -30,7 +30,7 @@ TRANSACTION_MPC_TRANSFER = Transaction(
     valid_to_time = 0x222,
     gas_cost = 0x333,
     contract_address=from_hex("0x01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881"),
-    rpc = from_hex('0x03_000000000000000000000000000000000000012345_0000000000000333'),
+    rpc = from_hex('0x03_000000000000000000000000000000000000012345_0000000000000444'),
 
     chain_id = b'TESTNET', # TODO
 )

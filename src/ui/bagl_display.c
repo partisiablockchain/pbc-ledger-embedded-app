@@ -40,9 +40,10 @@
 
 static action_validate_cb g_validate_callback;
 static char g_gas_cost[PRIu64_MAX_LENGTH + 1];
-static char g_transfer_amount[PRIu64_MAX_LENGTH + 1];
-static char g_address[2*ADDRESS_LEN + 1];
+static char g_transfer_amount[4 + PRIu64_MAX_LENGTH + 1];
+static char g_address[2 * ADDRESS_LEN + 1];
 static char g_review_text[20];
+static char g_address_title[10];
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -62,7 +63,7 @@ UX_STEP_NOCB(ux_display_step_confirm_addr, pn, {&C_icon_eye, "Confirm Transactio
 UX_STEP_NOCB(ux_display_step_address,
              bnnn_paging,
              {
-                 .title = "Contract",
+                 .title = g_address_title,
                  .text = g_address,
              });
 // Step with approve button
@@ -135,14 +136,14 @@ UX_STEP_NOCB(ux_display_step_review,
 UX_STEP_NOCB(ux_display_step_gas_cost,
              bnnn_paging,
              {
-                 .title = "Gas Cost",
+                 .title = "Fee",
                  .text = g_gas_cost,
              });
 
 UX_STEP_NOCB(ux_display_step_transfer_amount,
              bnnn_paging,
              {
-                 .title = "Transfer Amount",
+                 .title = "Amount",
                  .text = g_transfer_amount,
              });
 
@@ -161,18 +162,12 @@ static bool set_address(blockchain_address_s* address) {
     return blockchain_address_format(address, g_address, sizeof(g_address));
 }
 
-static void set_gas_cost(uint64_t gas_cost) {
-    // TODO: Return error if gas cost is not fully written
-    memset(g_gas_cost, 0, sizeof(g_gas_cost));
-    format_u64(g_gas_cost, sizeof(g_gas_cost), gas_cost);
-    PRINTF("Gas Cost: %s\n", g_gas_cost);
-}
-
-static void set_transfer_amount(uint64_t transfer_amount) {
-    // TODO: Return error if transfer amount is not fully written
-    memset(g_transfer_amount, 0, sizeof(g_transfer_amount));
-    format_u64(g_transfer_amount, sizeof(g_transfer_amount), transfer_amount);
-    PRINTF("Gas Cost: %s\n", g_transfer_amount);
+static void set_token_amount(char* out, size_t out_size, const char prefix[const 4], uint64_t gas_cost) {
+    // TODO: Return error if amount is not fully written
+    char number_buffer[PRIu64_MAX_LENGTH + 1];
+    memset(number_buffer, 0, sizeof(number_buffer));
+    format_u64(number_buffer, sizeof(number_buffer), gas_cost);
+    snprintf(out, out_size, "%s %s", prefix, number_buffer);
 }
 
 int ui_display_transaction(void) {
@@ -196,12 +191,16 @@ int ui_display_transaction(void) {
         snprintf(g_review_text, sizeof(g_review_text), "MPC Transfer");
 
         // Display recipient
+        snprintf(g_address_title, sizeof(g_address_title), "Recipient");
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-        set_address(&G_context.tx_info.transaction.basic.contract_address);
+        set_address(&G_context.tx_info.transaction.mpc_transfer.recipient_address);
 
         // Display token transfer amount
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
-        set_transfer_amount(G_context.tx_info.transaction.mpc_transfer.token_amount);
+        set_token_amount(g_transfer_amount,
+                   sizeof(g_transfer_amount),
+                   "MPC",
+                   G_context.tx_info.transaction.mpc_transfer.token_amount);
 
         // Display memo
         // TODO
@@ -214,6 +213,7 @@ int ui_display_transaction(void) {
         // TODO: Blind sign settings toggle
 
         // Display contract address
+        snprintf(g_address_title, sizeof(g_address_title), "Contract");
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
         if (!set_address(&G_context.tx_info.transaction.basic.contract_address))
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
@@ -223,7 +223,7 @@ int ui_display_transaction(void) {
 
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
-    set_gas_cost(G_context.tx_info.transaction.basic.gas_cost);
+    set_token_amount(g_gas_cost, sizeof(g_gas_cost), "Gas", G_context.tx_info.transaction.basic.gas_cost);
 
     // Setup UI flow
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_approve;
