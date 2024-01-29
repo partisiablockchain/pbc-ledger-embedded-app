@@ -12,9 +12,7 @@
 
 #include "address.h"
 
-#define MAX_MEMO_LEN \
-    465  // TODO
-         //
+#define MEMO_MAX_LENGTH 20
 
 /**
  * Stores the state of the parser.
@@ -58,7 +56,7 @@ typedef struct {
     uint64_t token_amount;                   // Amount of MPC tokens sent
     uint8_t memo_length;                     // Length of associated memo.
                                              // Possibly cut off.
-    uint8_t memo[20];                        // Contents of associated memo
+    uint8_t memo[MEMO_MAX_LENGTH];           // Contents of associated memo
                                              // Possibly cut off.
 } mpc_transfer_transaction_type_s;
 
@@ -78,8 +76,8 @@ typedef enum {
  * https://partisiablockchain.gitlab.io/documentation/smart-contracts/transaction-binary-format.html
  */
 typedef struct {
-    uint64_t nonce;                         /// nonce
-    uint64_t valid_to_time;                 /// last block height that transaction is valid for
+    uint64_t nonce;                         /// nonce (not shown in UI)
+    uint64_t valid_to_time;                 /// last block height that transaction is valid for (not shown in UI)
     uint64_t gas_cost;                      /// amount of gas to be used for this transaction
     blockchain_address_s contract_address;  /// contract address to interact with
     chain_id_t chain_id;                    /// which chain the transaction is targeting

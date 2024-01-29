@@ -19,6 +19,7 @@
 
 #include <stdbool.h>  // bool
 #include <string.h>   // memset
+#include <inttypes.h>
 
 #include "os.h"
 #include "ux.h"
@@ -36,9 +37,13 @@
 #include "../transaction/types.h"
 #include "../menu.h"
 
+#define PRIu64_MAX_LENGTH 20
+
 static action_validate_cb g_validate_callback;
-static char g_gas_cost[30];
-static char g_contract_address[43];
+static char g_gas_cost[PRIu64_MAX_LENGTH + 1];
+static char g_transfer_amount[PRIu64_MAX_LENGTH + 1];
+static char g_address[2*ADDRESS_LEN + 1];
+static char g_review_text[20];
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -53,16 +58,16 @@ static void ui_action_validate_transaction(bool choice) {
 }
 
 // Step with icon and text
-UX_STEP_NOCB(ux_display_confirm_addr_step, pn, {&C_icon_eye, "Confirm Transaction"});
+UX_STEP_NOCB(ux_display_step_confirm_addr, pn, {&C_icon_eye, "Confirm Transaction"});
 // Step with title/text for address
-UX_STEP_NOCB(ux_display_address_step,
+UX_STEP_NOCB(ux_display_step_address,
              bnnn_paging,
              {
                  .title = "Contract",
-                 .text = g_contract_address,
+                 .text = g_address,
              });
 // Step with approve button
-UX_STEP_CB(ux_display_approve_step,
+UX_STEP_CB(ux_display_step_approve,
            pb,
            (*g_validate_callback)(true),
            {
@@ -70,7 +75,7 @@ UX_STEP_CB(ux_display_approve_step,
                "Approve",
            });
 // Step with reject button
-UX_STEP_CB(ux_display_reject_step,
+UX_STEP_CB(ux_display_step_reject,
            pb,
            (*g_validate_callback)(false),
            {
@@ -84,10 +89,10 @@ UX_STEP_CB(ux_display_reject_step,
 // #3 screen: approve button
 // #4 screen: reject button
 UX_FLOW(ux_display_pubkey_flow,
-        &ux_display_confirm_addr_step,
-        &ux_display_address_step,
-        &ux_display_approve_step,
-        &ux_display_reject_step);
+        &ux_display_step_confirm_addr,
+        &ux_display_step_address,
+        &ux_display_step_approve,
+        &ux_display_step_reject);
 
 /**
  * Formats a blockchain_address_s as a hex string.
@@ -104,12 +109,12 @@ int ui_display_address() {
     }
 
     // Format address
-    memset(g_contract_address, 0, sizeof(g_contract_address));
+    memset(g_address, 0, sizeof(g_address));
     blockchain_address_s address;
     if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
-    if (!blockchain_address_format(&address, g_contract_address, sizeof(g_contract_address))) {
+    if (!blockchain_address_format(&address, g_address, sizeof(g_address))) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
@@ -120,20 +125,29 @@ int ui_display_address() {
 }
 
 // Step with icon and text
-UX_STEP_NOCB(ux_display_review_step,
+UX_STEP_NOCB(ux_display_step_review,
              pnn,
              {
                  &C_icon_eye,
                  "Review",
-                 "Transaction",
+                 g_review_text,
              });
 // Step with title/text for amount
-UX_STEP_NOCB(ux_display_amount_step,
+UX_STEP_NOCB(ux_display_step_gas_cost,
              bnnn_paging,
              {
                  .title = "Gas Cost",
                  .text = g_gas_cost,
              });
+
+UX_STEP_NOCB(ux_display_step_transfer_amount,
+             bnnn_paging,
+             {
+                 .title = "Transfer Amount",
+                 .text = g_transfer_amount,
+             });
+
+#define MAX_NUM_STEPS 8
 
 // FLOW to display transaction information:
 // #1 screen : eye icon + "Review Transaction"
@@ -141,43 +155,82 @@ UX_STEP_NOCB(ux_display_amount_step,
 // #3 screen : display destination address
 // #4 screen : approve button
 // #5 screen : reject button
-UX_FLOW(ux_display_transaction_flow,
-        &ux_display_review_step,
-        &ux_display_address_step,
-        &ux_display_amount_step,
-        &ux_display_approve_step,
-        &ux_display_reject_step);
+const ux_flow_step_t* ux_display_transaction_flow[MAX_NUM_STEPS + 1];
 
-int ui_display_transaction() {
+static bool set_address(blockchain_address_s* address) {
+    memset(g_address, 0, sizeof(g_address));
+    return blockchain_address_format(address, g_address, sizeof(g_address));
+}
+
+static void set_gas_cost(uint64_t gas_cost) {
+    // TODO: Return error if gas cost is not fully written
+    memset(g_gas_cost, 0, sizeof(g_gas_cost));
+    snprintf(g_gas_cost, sizeof(g_gas_cost), "%"PRIu64, gas_cost);
+    PRINTF("Gas Cost: %"PRIu64"\n", g_gas_cost);
+}
+
+static void set_transfer_amount(uint64_t transfer_amount) {
+    // TODO: Return error if transfer amount is not fully written
+    memset(g_transfer_amount, 0, sizeof(g_transfer_amount));
+    snprintf(g_transfer_amount, sizeof(g_transfer_amount), "%"PRIu64, transfer_amount);
+    PRINTF("Transfer amount: %"PRIu64"\n", g_transfer_amount);
+}
+
+int ui_display_transaction(void) {
     // Check current state
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
 
-    // Format gas cost
-    memset(g_gas_cost, 0, sizeof(g_gas_cost));
-    char amount[30] = {0};
+    // TODO: Cleanup
 
-    // TODO: Remove weird unit system or replace with K/M/G etc.
-    if (!format_fpu64(amount,
-                      sizeof(amount),
-                      G_context.tx_info.transaction.basic.gas_cost,
-                      EXPONENT_SMALLEST_UNIT)) {
-        return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
-    }
-    snprintf(g_gas_cost, sizeof(g_gas_cost), "%.*s", sizeof(amount), amount);
-    PRINTF("Gas Cost: %s\n", g_gas_cost);
+    uint8_t ux_flow_idx = 0;
 
-    // Format contract address
-    memset(g_contract_address, 0, sizeof(g_contract_address));
-    if (!blockchain_address_format(&G_context.tx_info.transaction.basic.contract_address,
-                                   g_contract_address,
-                                   sizeof(g_contract_address))) {
-        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+    // Display initial
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
+
+    // Either setup clear-sign flows or blind-sign flows.
+    if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
+        // MPC Transfer
+
+        snprintf(g_review_text, sizeof(g_review_text), "MPC Transfer");
+
+        // Display recipient
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
+        set_address(&G_context.tx_info.transaction.basic.contract_address);
+
+        // Display token transfer amount
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
+        set_transfer_amount(G_context.tx_info.transaction.mpc_transfer.token_amount);
+
+        // Display memo
+        // TODO
+
+    } else {
+        // Blind sign
+        snprintf(g_review_text, sizeof(g_review_text), "Blind Interaction");
+
+        // TODO: Change review icon
+        // TODO: Blind sign settings toggle
+
+        // Display contract address
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
+        if (!set_address(&G_context.tx_info.transaction.basic.contract_address))
+            return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
+
+    // TODO: Blind Warning?
+
+    // Display gas cost
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
+    set_gas_cost(G_context.tx_info.transaction.basic.gas_cost);
 
     // Setup UI flow
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_approve;
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_reject;
+    ux_display_transaction_flow[ux_flow_idx++] = FLOW_END_STEP;
+
     g_validate_callback = &ui_action_validate_transaction;
     ux_flow_init(0, ux_display_transaction_flow, NULL);
     return 0;
