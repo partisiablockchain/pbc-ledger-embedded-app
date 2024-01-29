@@ -7,6 +7,36 @@ from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID
 from utils import ROOT_SCREENSHOT_PATH
 
+TRANSACTION_GENERIC_CONTRACT = Transaction(
+    nonce=0x111,
+    valid_to_time = 0x222,
+    gas_cost = 0x333,
+    contract_address=from_hex("0x01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
+    rpc = from_hex('0xdeadbeef'),
+    chain_id = b'TESTNET', # TODO?
+)
+
+TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME = Transaction(
+    nonce=0x111,
+    valid_to_time = 0x222,
+    gas_cost = 0x333,
+    contract_address=from_hex("0x01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881"),
+    rpc = from_hex('0x000000000000000000000000000000000000012345_0000000000000333'),
+    chain_id = b'TESTNET', # TODO
+)
+
+TRANSACTION_MPC_TRANSFER = Transaction(
+    nonce=0x111,
+    valid_to_time = 0x222,
+    gas_cost = 0x333,
+    contract_address=from_hex("0x01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881"),
+    rpc = from_hex('0x03_000000000000000000000000000000000000012345_0000000000000333'),
+
+    chain_id = b'TESTNET', # TODO
+)
+
+
+
 # In this test se send to the device a transaction to sign and validate it on screen
 # The transaction is short and will be sent in one chunk
 # We will ensure that the displayed information is correct by using screenshots comparison
@@ -21,14 +51,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
     # Create the transaction that will be sent to the device for signing
-    transaction = Transaction(
-        nonce=0x111,
-        valid_to_time = 0x222,
-        gas_cost = 0x333,
-        contract_address=from_hex("0x01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
-        rpc = from_hex('0xdeadbeef'),
-        chain_id = b'TESTNET', # TODO?
-    )
+    transaction = TRANSACTION_MPC_TRANSFER #TRANSACTION_GENERIC_CONTRACT
     transaction_bytes = transaction.serialize()
 
     # Send the sign device instruction.

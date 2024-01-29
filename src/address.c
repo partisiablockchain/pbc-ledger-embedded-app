@@ -20,13 +20,13 @@
 #include <stdbool.h>  // bool
 #include <string.h>   // memmove
 
-#include "os.h"
+#include "address.h"
+#include "transaction/types.h"
+
+#if defined(HAVE_SHA256)
+
 #include "cx.h"
 #include "ledger_assert.h"
-
-#include "address.h"
-
-#include "transaction/types.h"
 
 bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
                                     blockchain_address_s *out) {
@@ -47,7 +47,8 @@ bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
                             out->raw_bytes+1,
                             IDENTIFIER_LEN) != CX_OK;
 }
+#endif
 
 bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s* b) {
-  return memcmp(a, b, sizeof(blockchain_address_s));
+  return memcmp(a, b, sizeof(blockchain_address_s)) == 0;
 }

@@ -18,7 +18,7 @@ ADDRESS_LENGTH = 21
 
 def from_hex(hex_addr: str) -> bytes:
     assert hex_addr.startswith('0x')
-    return bytes.fromhex(hex_addr[2:])
+    return bytes.fromhex(hex_addr[2:].replace("_", ''))
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Transaction:

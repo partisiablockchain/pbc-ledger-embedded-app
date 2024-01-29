@@ -18,9 +18,9 @@
 #include "buffer.h"
 
 #include "deserialize.h"
-#include "utils.h"
 #include "types.h"
 #include "well_known.h"
+#include "address.h"
 
 #if defined(TEST) || defined(FUZZ)
 #include "assert.h"

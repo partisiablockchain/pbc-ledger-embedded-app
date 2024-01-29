@@ -4,6 +4,10 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
+#if defined(HAVE_SHA256)
+#include "lcx_sha256.h"
+#endif
+
 #define IDENTIFIER_LEN 20
 #define ADDRESS_LEN (IDENTIFIER_LEN+1)
 
@@ -26,8 +30,11 @@ typedef struct {
     uint8_t raw_bytes[ADDRESS_LEN];  // Unique identifier part of the address
 } blockchain_address_s;
 
+#if defined(HAVE_SHA256)
 /**
  * Convert public key to address.
+ *
+ * Only available when platform has HAVE_SHA256.
  *
  * address = Keccak256(public_key)[12:32] (20 bytes) TODO
  *
@@ -39,9 +46,9 @@ typedef struct {
  *   Pointer to output byte buffer for address.
  *
  * @return true if success, false otherwise.
- *
  */
 bool blockchain_address_from_pubkey(const uint8_t public_key[static 65], blockchain_address_s *out);
+#endif
 
 /**
  * Checks whether two blockchain_address_s are equals.

@@ -19,7 +19,6 @@
 
 #include <stdbool.h>  // bool
 #include <string.h>   // memset
-#include <inttypes.h>
 
 #include "os.h"
 #include "ux.h"
@@ -165,15 +164,15 @@ static bool set_address(blockchain_address_s* address) {
 static void set_gas_cost(uint64_t gas_cost) {
     // TODO: Return error if gas cost is not fully written
     memset(g_gas_cost, 0, sizeof(g_gas_cost));
-    snprintf(g_gas_cost, sizeof(g_gas_cost), "%"PRIu64, gas_cost);
-    PRINTF("Gas Cost: %"PRIu64"\n", g_gas_cost);
+    format_u64(g_gas_cost, sizeof(g_gas_cost), gas_cost);
+    PRINTF("Gas Cost: %s\n", g_gas_cost);
 }
 
 static void set_transfer_amount(uint64_t transfer_amount) {
     // TODO: Return error if transfer amount is not fully written
     memset(g_transfer_amount, 0, sizeof(g_transfer_amount));
-    snprintf(g_transfer_amount, sizeof(g_transfer_amount), "%"PRIu64, transfer_amount);
-    PRINTF("Transfer amount: %"PRIu64"\n", g_transfer_amount);
+    format_u64(g_transfer_amount, sizeof(g_transfer_amount), transfer_amount);
+    PRINTF("Gas Cost: %s\n", g_transfer_amount);
 }
 
 int ui_display_transaction(void) {
