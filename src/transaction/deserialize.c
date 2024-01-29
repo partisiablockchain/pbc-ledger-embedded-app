@@ -15,6 +15,7 @@
  *  limitations under the License.
  *****************************************************************************/
 #include <string.h>
+#include <stdio.h>
 #include "buffer.h"
 
 #include "deserialize.h"
@@ -59,52 +60,52 @@ static bool buffer_read_contract_address(buffer_t *buffer, blockchain_address_s 
     return buffer_read_bytes(buffer, out->raw_bytes, ADDRESS_LEN);
 }
 
-static bool parse_rpc_mpc_token(buffer_t* chunk, transaction_t* tx) {
+static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
+    // Read shortname
+    uint8_t shortname;
+    if (!buffer_read_u8(chunk, &shortname)) {
+        return false;
+    }
 
-  // Read shortname
-  uint8_t shortname;
-  if (!buffer_read_u8(chunk, &shortname)) {
+    if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER) {
+        tx->type = MPC_TRANSFER;
+        tx->mpc_transfer.memo_length = 0;
+
+        // TODO: Check remaining chunk length
+        if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
+            return false;
+        }
+
+        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE);
+
+    } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
+        tx->type = MPC_TRANSFER;
+        tx->mpc_transfer.memo_length = 8;
+
+        // TODO: Check remaining chunk length
+        if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
+            return false;
+        }
+
+        // TODO: Needs to be interpreted as a long.
+        return buffer_read_bytes(chunk, tx->mpc_transfer.memo, 8);
+    }
+
+    // TODO: MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE
+
+    // Unknown shortname
     return false;
-  }
-
-  if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER) {
-    tx->type = MPC_TRANSFER;
-    tx->mpc_transfer.memo_length = 0;
-
-    // TODO: Check remaining chunk length
-    if (buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
-      return false;
-    }
-
-    return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE);
-
-  } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
-    tx->type = MPC_TRANSFER;
-    tx->mpc_transfer.memo_length = 8;
-
-    // TODO: Check remaining chunk length
-    if (buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
-      return false;
-    }
-
-    // TODO: Needs to be interpreted as a long.
-    return buffer_read_bytes(chunk, tx->mpc_transfer.memo, 8);
-  }
-
-  // TODO: MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE
-
-  // Unknown shortname
-  return false;
 }
 
 /**
- * Invariants: Must either consume entire chunk (and return true), or consume any amount (and return false).
+ * Invariants: Must either consume entire chunk (and return true), or consume any amount (and return
+ * false).
  */
-static bool parse_rpc(buffer_t* chunk, transaction_t* tx) {
-  if (blockchain_address_is_equal(&tx->basic.contract_address, &MPC_TOKEN_ADDRESS)) {
-    return parse_rpc_mpc_token(chunk, tx);
-  }
-  return false;
+static bool parse_rpc(buffer_t *chunk, transaction_t *tx) {
+    if (blockchain_address_is_equal(&tx->basic.contract_address, &MPC_TOKEN_ADDRESS)) {
+        return parse_rpc_mpc_token(chunk, tx);
+    }
+    return false;
 }
 
 parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
@@ -148,14 +149,14 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
         // Try to parse RPC
         size_t current_chunk_offset = chunk->offset;
         if (parse_rpc(chunk, tx)) {
-          // If RPC could be parsed: No skipping required!
-          state->rpc_bytes_parsed = state->rpc_bytes_total;
+            // If RPC could be parsed: No skipping required!
+            state->rpc_bytes_parsed = state->rpc_bytes_total;
 
-          // TODO: Check that entire chunk has been consumed.
+            // TODO: Check that entire chunk has been consumed.
         } else {
-          // If RPC couldn't be parsed. Mark as GENERIC. Reset and continue.
-          chunk->offset = current_chunk_offset;
-          tx->type = GENERIC_TRANSACTION;
+            // If RPC couldn't be parsed. Mark as GENERIC. Reset and continue.
+            chunk->offset = current_chunk_offset;
+            tx->type = GENERIC_TRANSACTION;
         }
     }
 
