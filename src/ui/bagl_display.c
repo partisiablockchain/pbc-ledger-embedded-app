@@ -45,7 +45,7 @@ static char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 static char g_address[2 * ADDRESS_LEN + 1];
 static char g_review_text[20];
 static char g_address_title[10];
-static char g_memo[20 + 1];  // TODO
+static char g_memo[MEMO_MAX_LENGTH + 1];  // TODO
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -166,6 +166,16 @@ UX_STEP_NOCB(ux_display_step_memo,
 // #5 screen : reject button
 const ux_flow_step_t* ux_display_transaction_flow[MAX_NUM_STEPS + 1];
 
+static void replace_unreadable(char* str, size_t str_len) {
+    for (size_t i = 0; i < str_len; i++) {
+        if (str[i] == 0) {
+            continue;
+        } else if (str[i] < ' ' || '~' < str[i]) {
+            str[i] = '?';
+        }
+    }
+}
+
 static bool set_address(blockchain_address_s* address) {
     memset(g_address, 0, sizeof(g_address));
     return blockchain_address_format(address, g_address, sizeof(g_address));
@@ -224,9 +234,9 @@ int ui_display_transaction(void) {
                                  G_context.tx_info.transaction.mpc_transfer.memo_u64);
             } else {
                 // TODO: Unsafe copy
-                memcpy(g_memo,
-                       &G_context.tx_info.transaction.mpc_transfer.memo_u64,
-                       sizeof(g_memo));
+                memcpy(g_memo, &G_context.tx_info.transaction.mpc_transfer.memo, sizeof(g_memo));
+                replace_unreadable(g_memo, sizeof(g_memo));
+                g_memo[sizeof(g_memo) - 1] = 0;
             }
         }
 

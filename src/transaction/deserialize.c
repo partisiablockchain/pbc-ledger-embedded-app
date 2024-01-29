@@ -109,7 +109,6 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE) {
         tx->type = MPC_TRANSFER;
-        tx->mpc_transfer.memo_length = 8;
 
         // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
@@ -135,7 +134,7 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         }
         tx->mpc_transfer.has_u64_memo = false;
 
-        return true;  // Extra data is allowed (as we cannot guarentee that the memo is not huge.)
+        return true;  // Extra data is allowed (as we cannot guarentee that the memo is not larger than the current block.)
     } else {
         // Unknown shortname
         return false;

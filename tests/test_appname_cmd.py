@@ -10,7 +10,8 @@ def test_app_name(backend):
     # Send the GET_APP_NAME instruction to the app
     response = client.get_app_name()
     # Assert that we have received the correct appname
-    assert unpack_get_app_name_response(response.data) == "Boilerplate"
+    app_name_response = unpack_get_app_name_response(response.data)
+    assert app_name_response == "Partisia Blockchain"
 
 if __name__ == '__main__':
     from ragger.backend.ledgerwallet import LedgerWalletBackend
