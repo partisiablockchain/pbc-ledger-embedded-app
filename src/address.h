@@ -9,7 +9,7 @@
 #endif
 
 #define IDENTIFIER_LEN 20
-#define ADDRESS_LEN (IDENTIFIER_LEN+1)
+#define ADDRESS_LEN    (IDENTIFIER_LEN + 1)
 
 /**
  * Distinguishes the types of contract addresses that exists.
@@ -53,4 +53,4 @@ bool blockchain_address_from_pubkey(const uint8_t public_key[static 65], blockch
 /**
  * Checks whether two blockchain_address_s are equals.
  */
-bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s* b);
+bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s *b);

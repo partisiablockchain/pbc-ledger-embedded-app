@@ -44,11 +44,11 @@ bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
                             CX_LAST,
                             public_key + 1,
                             64,
-                            out->raw_bytes+1,
+                            out->raw_bytes + 1,
                             IDENTIFIER_LEN) != CX_OK;
 }
 #endif
 
-bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s* b) {
-  return memcmp(a, b, sizeof(blockchain_address_s)) == 0;
+bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s *b) {
+    return memcmp(a, b, sizeof(blockchain_address_s)) == 0;
 }
