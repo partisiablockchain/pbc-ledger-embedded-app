@@ -56,8 +56,12 @@ typedef struct {
     uint64_t token_amount;                   // Amount of MPC tokens sent
     uint8_t memo_length;                     // Length of associated memo.
                                              // Possibly cut off.
-    uint8_t memo[MEMO_MAX_LENGTH];           // Contents of associated memo
-                                             // Possibly cut off.
+    bool has_u64_memo;
+    union {
+      uint64_t memo_u64;
+      uint8_t memo[MEMO_MAX_LENGTH];           // Contents of associated memo
+                                               // Possibly cut off.
+    };
 } mpc_transfer_transaction_type_s;
 
 /**

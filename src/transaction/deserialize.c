@@ -57,7 +57,7 @@ static bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
  * Reads a contract_address_s from the given buffer.
  */
 static bool buffer_read_contract_address(buffer_t *buffer, blockchain_address_s *out) {
-    return buffer_read_bytes(buffer, out->raw_bytes, ADDRESS_LEN);
+    return buffer_read_bytes(buffer, out->raw_bytes, sizeof(out->raw_bytes));
 }
 
 static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
@@ -71,30 +71,75 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         tx->type = MPC_TRANSFER;
         tx->mpc_transfer.memo_length = 0;
 
-        // TODO: Check remaining chunk length
+        // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
             return false;
         }
 
-        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE);
+        // MPC Amount
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
+            return false;
+        }
+
+        // RPC must not contain any more data
+        return chunk->offset == chunk->size;
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
         tx->type = MPC_TRANSFER;
         tx->mpc_transfer.memo_length = 8;
 
-        // TODO: Check remaining chunk length
+        // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
             return false;
         }
 
+        // MPC Amount
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
+            return false;
+        }
+
         // TODO: Needs to be interpreted as a long.
-        return buffer_read_bytes(chunk, tx->mpc_transfer.memo, 8);
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.memo_u64, BE)) {
+            return false;
+        }
+        tx->mpc_transfer.has_u64_memo = true;
+
+        // RPC must not contain any more data
+        return chunk->offset == chunk->size;
+
+    } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE) {
+        tx->type = MPC_TRANSFER;
+        tx->mpc_transfer.memo_length = 8;
+
+        // Recipient
+        if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
+            return false;
+        }
+
+        // MPC Amount
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
+            return false;
+        }
+
+        // Read memo length
+        uint32_t memo_length;
+        if (!buffer_read_u32(chunk, &memo_length, BE)) {
+            return false;
+        }
+
+        // Read memo
+        // TODO: Unsafe
+        tx->mpc_transfer.memo_length = memo_length;
+        if (!buffer_read_bytes(chunk, tx->mpc_transfer.memo, memo_length)) {
+            return false;
+        }
+        tx->mpc_transfer.has_u64_memo = false;
+
+        return true;  // Extra data is allowed (as we cannot guarentee that the memo is not huge.)
+    } else {
+        // Unknown shortname
+        return false;
     }
-
-    // TODO: MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE
-
-    // Unknown shortname
-    return false;
 }
 
 /**

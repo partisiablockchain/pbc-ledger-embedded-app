@@ -36,7 +36,7 @@ typedef struct {
  *
  * Only available when platform has HAVE_SHA256.
  *
- * address = Keccak256(public_key)[12:32] (20 bytes) TODO
+ * address = SHA256(public_key)[12:32] (20 bytes) TODO
  *
  * @param[in]  public_key
  *   Pointer to byte buffer with public key.

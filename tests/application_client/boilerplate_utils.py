@@ -1,10 +1,9 @@
 from io import BytesIO
-from typing import Optional, Literal
+from typing import Literal
 
-
-UINT64_MAX: int = 2**64-1
-UINT32_MAX: int = 2**32-1
-UINT16_MAX: int = 2**16-1
+UINT64_MAX: int = 2**64 - 1
+UINT32_MAX: int = 2**32 - 1
+UINT16_MAX: int = 2**16 - 1
 
 
 def read(buf: BytesIO, size: int) -> bytes:

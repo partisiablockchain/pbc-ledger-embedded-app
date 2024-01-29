@@ -44,6 +44,7 @@ static char g_transfer_amount[4 + PRIu64_MAX_LENGTH + 1];
 static char g_address[2 * ADDRESS_LEN + 1];
 static char g_review_text[20];
 static char g_address_title[10];
+static char g_memo[20 + 1];  // TODO
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -147,6 +148,13 @@ UX_STEP_NOCB(ux_display_step_transfer_amount,
                  .text = g_transfer_amount,
              });
 
+UX_STEP_NOCB(ux_display_step_memo,
+             bnnn_paging,
+             {
+                 .title = "Memo",
+                 .text = g_memo,
+             });
+
 #define MAX_NUM_STEPS 8
 
 // FLOW to display transaction information:
@@ -162,7 +170,10 @@ static bool set_address(blockchain_address_s* address) {
     return blockchain_address_format(address, g_address, sizeof(g_address));
 }
 
-static void set_token_amount(char* out, size_t out_size, const char prefix[const 4], uint64_t gas_cost) {
+static void set_token_amount(char* out,
+                             size_t out_size,
+                             const char prefix[const 4],
+                             uint64_t gas_cost) {
     // TODO: Return error if amount is not fully written
     char number_buffer[PRIu64_MAX_LENGTH + 1];
     memset(number_buffer, 0, sizeof(number_buffer));
@@ -198,12 +209,25 @@ int ui_display_transaction(void) {
         // Display token transfer amount
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
         set_token_amount(g_transfer_amount,
-                   sizeof(g_transfer_amount),
-                   "MPC",
-                   G_context.tx_info.transaction.mpc_transfer.token_amount);
+                         sizeof(g_transfer_amount),
+                         "MPC",
+                         G_context.tx_info.transaction.mpc_transfer.token_amount);
 
         // Display memo
-        // TODO
+        if (G_context.tx_info.transaction.mpc_transfer.memo_length > 0) {
+            ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_memo;
+            if (G_context.tx_info.transaction.mpc_transfer.has_u64_memo) {
+                set_token_amount(g_memo,
+                                 sizeof(g_memo),
+                                 "",
+                                 G_context.tx_info.transaction.mpc_transfer.memo_u64);
+            } else {
+                // TODO: Unsafe copy
+                memcpy(g_memo,
+                       &G_context.tx_info.transaction.mpc_transfer.memo_u64,
+                       sizeof(g_memo));
+            }
+        }
 
     } else {
         // Blind sign
@@ -223,7 +247,10 @@ int ui_display_transaction(void) {
 
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
-    set_token_amount(g_gas_cost, sizeof(g_gas_cost), "Gas", G_context.tx_info.transaction.basic.gas_cost);
+    set_token_amount(g_gas_cost,
+                     sizeof(g_gas_cost),
+                     "Gas",
+                     G_context.tx_info.transaction.basic.gas_cost);
 
     // Setup UI flow
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_approve;

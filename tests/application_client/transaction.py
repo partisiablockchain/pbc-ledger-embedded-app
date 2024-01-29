@@ -1,13 +1,10 @@
-from io import BytesIO
-from typing import Union
-from pathlib import Path
 from hashlib import sha256
+import dataclasses
 
 from ecdsa.curves import SECP256k1
 from ecdsa.keys import VerifyingKey
 from ecdsa.util import sigdecode_der
-import dataclasses
-from .boilerplate_utils import read, read_uint, UINT64_MAX
+from .boilerplate_utils import UINT64_MAX
 
 
 class TransactionError(Exception):
@@ -16,9 +13,11 @@ class TransactionError(Exception):
 
 ADDRESS_LENGTH = 21
 
+
 def from_hex(hex_addr: str) -> bytes:
     assert hex_addr.startswith('0x')
     return bytes.fromhex(hex_addr[2:].replace("_", ''))
+
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Transaction:
@@ -38,15 +37,17 @@ class Transaction:
             raise TransactionError(f"Bad nonce: '{self.nonce}'!")
 
         if not 0 <= self.valid_to_time <= UINT64_MAX:
-            raise TransactionError(f"Bad valid_to_time: '{self.valid_to_time}'!")
+            raise TransactionError(
+                f"Bad valid_to_time: '{self.valid_to_time}'!")
 
         if not 0 <= self.gas_cost <= UINT64_MAX:
             raise TransactionError(f"Bad gas_cost: '{self.gas_cost}'!")
 
         if len(self.contract_address) != ADDRESS_LENGTH:
-            raise TransactionError(f"Bad address: '{self.contract_address.hex()}'!")
+            raise TransactionError(
+                f"Bad address: '{self.contract_address.hex()}'!")
 
-        if self.chain_id not in { b'TESTNET', b'MAINNET' }:
+        if self.chain_id not in {b'TESTNET', b'MAINNET'}:
             raise TransactionError(f"Unknown chain id: '{self.chain_id}'!")
 
     def serialize(self) -> bytes:
