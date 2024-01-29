@@ -1,5 +1,5 @@
-from application_client.boilerplate_command_sender import BoilerplateCommandSender
-from application_client.boilerplate_response_unpacker import unpack_get_app_name_response
+from application_client.command_sender import BoilerplateCommandSender
+from application_client.response_unpacker import unpack_get_app_name_response
 
 def test_app_name(backend):
     '''

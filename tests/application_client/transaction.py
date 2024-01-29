@@ -4,14 +4,13 @@ import dataclasses
 from ecdsa.curves import SECP256k1
 from ecdsa.keys import VerifyingKey
 from ecdsa.util import sigdecode_der
-from .boilerplate_utils import UINT64_MAX
 
+UINT64_MAX: int = 2**64 - 1
+
+ADDRESS_LENGTH = 21
 
 class TransactionError(Exception):
     pass
-
-
-ADDRESS_LENGTH = 21
 
 
 def from_hex(hex_addr: str) -> bytes:
