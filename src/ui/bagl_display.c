@@ -37,10 +37,11 @@
 #include "../menu.h"
 
 #define PRIu64_MAX_LENGTH 20
+#define TOKEN_SUFFIX_LEN  3
 
 static action_validate_cb g_validate_callback;
 static char g_gas_cost[PRIu64_MAX_LENGTH + 1];
-static char g_transfer_amount[4 + PRIu64_MAX_LENGTH + 1];
+static char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 static char g_address[2 * ADDRESS_LEN + 1];
 static char g_review_text[20];
 static char g_address_title[10];
@@ -172,13 +173,13 @@ static bool set_address(blockchain_address_s* address) {
 
 static void set_token_amount(char* out,
                              size_t out_size,
-                             const char prefix[const 4],
+                             const char suffix[const TOKEN_SUFFIX_LEN + 1],
                              uint64_t gas_cost) {
     // TODO: Return error if amount is not fully written
     char number_buffer[PRIu64_MAX_LENGTH + 1];
     memset(number_buffer, 0, sizeof(number_buffer));
     format_u64(number_buffer, sizeof(number_buffer), gas_cost);
-    snprintf(out, out_size, "%s %s", prefix, number_buffer);
+    snprintf(out, out_size, "%s %s", number_buffer, suffix);
 }
 
 int ui_display_transaction(void) {

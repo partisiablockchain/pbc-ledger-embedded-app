@@ -19,7 +19,7 @@ def from_hex(hex_addr: str) -> bytes:
     return bytes.fromhex(hex_addr[2:].replace("_", ''))
 
 
-@dataclasses.dataclass(frozen=True, slots=True)
+@dataclasses.dataclass(frozen=True)
 class Transaction:
     '''
     Individual unsigned Transaction on the Partisia Blockchain.

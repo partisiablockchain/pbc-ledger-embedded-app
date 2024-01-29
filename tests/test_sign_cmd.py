@@ -9,74 +9,73 @@ from utils import ROOT_SCREENSHOT_PATH
 
 TRANSACTION_GENERIC_CONTRACT = Transaction(
     nonce=0x111,
-    valid_to_time = 0x222,
-    gas_cost = 0x333,
+    valid_to_time=0x222,
+    gas_cost=0x333,
     contract_address=from_hex("0x01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
-    rpc = from_hex('0xdeadbeef'),
-    chain_id = b'TESTNET', # TODO?
+    rpc=from_hex('0xdeadbeef'),
+    chain_id=b'TESTNET',  # TODO?
 )
 
 TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME = Transaction(
     nonce=0x111,
-    valid_to_time = 0x222,
-    gas_cost = 0x333,
+    valid_to_time=0x222,
+    gas_cost=0x333,
     contract_address=from_hex("0x01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881"),
-    rpc = from_hex('0x000000000000000000000000000000000000012345_0000000000000333'),
-    chain_id = b'TESTNET', # TODO
+    rpc=from_hex(
+        '0x000000000000000000000000000000000000012345_0000000000000333'),
+    chain_id=b'TESTNET',  # TODO
 )
 
 TRANSACTION_MPC_TRANSFER = Transaction(
     nonce=0x111,
-    valid_to_time = 0x222,
-    gas_cost = 0x333,
+    valid_to_time=0x222,
+    gas_cost=0x333,
     contract_address=from_hex("0x01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881"),
-    rpc = from_hex('0x03_000000000000000000000000000000000000012345_0000000000000444'),
-
-    chain_id = b'TESTNET', # TODO
+    rpc=from_hex(
+        '0x03_000000000000000000000000000000000000012345_0000000000000444'),
+    chain_id=b'TESTNET',  # TODO
 )
 
 
+def move_to_end_and_approve(firmware, navigator, test_name):
+    # Validate the on-screen request by performing the navigation appropriate for this device
+    if firmware.device.startswith("nano"):
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
+                                                  "Approve",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
+    else:
+        navigator.navigate_until_text_and_compare(
+            NavInsID.USE_CASE_REVIEW_TAP, [
+                NavInsID.USE_CASE_REVIEW_CONFIRM,
+                NavInsID.USE_CASE_STATUS_DISMISS
+            ], "Hold to sign", ROOT_SCREENSHOT_PATH, test_name)
 
-# In this test se send to the device a transaction to sign and validate it on screen
-# The transaction is short and will be sent in one chunk
-# We will ensure that the displayed information is correct by using screenshots comparison
-def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
-    # Use the app interface instead of raw interface
+
+KEY_PATH: str = "m/3757'/1'/0'/0/0"
+
+VALID_TRANSACTIONS = [
+    ('generic', TRANSACTION_GENERIC_CONTRACT),
+    ('mpc_transfer', TRANSACTION_MPC_TRANSFER),
+    ('almost_an_mpc_transfer', TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME),
+]
+
+
+@pytest.mark.parametrize("transaction_name,transaction", VALID_TRANSACTIONS)
+def test_sign_valid_transaction(firmware, backend, navigator, test_name,
+                                transaction_name, transaction):
     client = BoilerplateCommandSender(backend)
-    # The path used for this entire test
-    path: str = "m/3757'/1'/0'/0/0"
 
-    # First we need to get the public key of the device in order to build the transaction
-    rapdu = client.get_public_key(path=path)
+    rapdu = client.get_public_key(path=KEY_PATH)
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
-    # Create the transaction that will be sent to the device for signing
-    transaction = TRANSACTION_MPC_TRANSFER #TRANSACTION_GENERIC_CONTRACT
     transaction_bytes = transaction.serialize()
 
-    # Send the sign device instruction.
-    # As it requires on-screen validation, the function is asynchronous.
-    # It will yield the result when the navigation is done
-    with client.sign_tx(path=path, transaction=transaction_bytes):
-        pass
-        '''
-        # Validate the on-screen request by performing the navigation appropriate for this device
-        if firmware.device.startswith("nano"):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Approve",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
-        else:
-            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
-                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM,
-                                                       NavInsID.USE_CASE_STATUS_DISMISS],
-                                                      "Hold to sign",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
-        '''
+    with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
+        move_to_end_and_approve(firmware, navigator,
+                                '{}-{}'.format(test_name, transaction_name))
 
-    # The device as yielded the result, parse it and ensure that the signature is correct
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
     assert transaction.verify_signature(public_key, der_sig)
@@ -88,36 +87,25 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
 def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = BoilerplateCommandSender(backend)
-    path: str = "m/3757'/1'/0'/0/0"
 
-    rapdu = client.get_public_key(path=path)
+    rapdu = client.get_public_key(path=KEY_PATH)
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
     transaction = Transaction(
         nonce=1,
         to="0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
         value=666,
-        memo=("This is a very long memo. "
-              "It will force the app client to send the serialized transaction to be sent in chunk. "
-              "As the maximum chunk size is 255 bytes we will make this memo greater than 255 characters. "
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam.")
-    )
+        memo=
+        ("This is a very long memo. "
+         "It will force the app client to send the serialized transaction to be sent in chunk. "
+         "As the maximum chunk size is 255 bytes we will make this memo greater than 255 characters. "
+         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam."
+        ))
     transaction_bytes = transaction.serialize()
 
-    with client.sign_tx(path=path, transaction=transaction_bytes):
-        if firmware.device.startswith("nano"):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Approve",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
-        else:
-            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
-                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM,
-                                                       NavInsID.USE_CASE_STATUS_DISMISS],
-                                                      "Hold to sign",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
+    with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
+        move_to_end_and_approve(firmware, navigator, test_name)
+
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
     assert transaction.verify_signature(public_key, der_sig)
@@ -128,26 +116,22 @@ def test_sign_tx_long_tx(firmware, backend, navigator, test_name):
 def test_sign_tx_refused(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = BoilerplateCommandSender(backend)
-    path: str = "m/3757'/1'/0'/0/0"
 
-    rapdu = client.get_public_key(path=path)
+    rapdu = client.get_public_key(path=KEY_PATH)
     _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
     transaction = Transaction(
         nonce=1,
         to="0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
         value=666,
-        memo="This transaction will be refused by the user"
-    ).serialize()
+        memo="This transaction will be refused by the user").serialize()
 
     if firmware.device.startswith("nano"):
         with pytest.raises(ExceptionRAPDU) as e:
-            with client.sign_tx(path=path, transaction=transaction):
-                navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                          [NavInsID.BOTH_CLICK],
-                                                          "Reject",
-                                                          ROOT_SCREENSHOT_PATH,
-                                                          test_name)
+            with client.sign_tx(path=KEY_PATH, transaction=transaction):
+                navigator.navigate_until_text_and_compare(
+                    NavInsID.RIGHT_CLICK, [NavInsID.BOTH_CLICK], "Reject",
+                    ROOT_SCREENSHOT_PATH, test_name)
 
         # Assert that we have received a refusal
         assert e.value.status == Errors.SW_DENY
@@ -155,11 +139,13 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
     else:
         for i in range(3):
             instructions = [NavInsID.USE_CASE_REVIEW_TAP] * i
-            instructions += [NavInsID.USE_CASE_REVIEW_REJECT,
-                             NavInsID.USE_CASE_CHOICE_CONFIRM,
-                             NavInsID.USE_CASE_STATUS_DISMISS]
+            instructions += [
+                NavInsID.USE_CASE_REVIEW_REJECT,
+                NavInsID.USE_CASE_CHOICE_CONFIRM,
+                NavInsID.USE_CASE_STATUS_DISMISS
+            ]
             with pytest.raises(ExceptionRAPDU) as e:
-                with client.sign_tx(path=path, transaction=transaction):
+                with client.sign_tx(path=KEY_PATH, transaction=transaction):
                     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                                    test_name + f"/part{i}",
                                                    instructions)
@@ -167,8 +153,9 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             assert e.value.status == Errors.SW_DENY
             assert len(e.value.data) == 0
 
+
 if __name__ == '__main__':
     from ragger.backend.ledgerwallet import LedgerWalletBackend
     from ragger.firmware import Firmware
     with LedgerWalletBackend(Firmware.NANOS) as backend:
-        test_sign_tx_short_tx(Firmware.NANOS, backend, None, test_name = 'test')
+        test_sign_tx_short_tx(Firmware.NANOS, backend, None, test_name='test')
