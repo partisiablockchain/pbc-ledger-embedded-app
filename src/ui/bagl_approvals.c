@@ -176,6 +176,16 @@ static void replace_unreadable(char* str, size_t str_len) {
     }
 }
 
+static void set_memo_text(uint8_t* text, size_t text_len) {
+  // TODO: Return error if not fully written
+    size_t g_memo_len = sizeof(g_memo);
+    size_t copy_amount = text_len < g_memo_len ? text_len : g_memo_len;
+
+    memcpy(g_memo, text, copy_amount);
+    replace_unreadable(g_memo, copy_amount);
+    g_memo[copy_amount - 1] = 0;
+}
+
 static bool set_address(blockchain_address_s* address) {
     memset(g_address, 0, sizeof(g_address));
     return blockchain_address_format(address, g_address, sizeof(g_address));
@@ -198,8 +208,6 @@ int ui_display_transaction(void) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
-
-    // TODO: Cleanup
 
     uint8_t ux_flow_idx = 0;
 
@@ -233,10 +241,8 @@ int ui_display_transaction(void) {
                                  "",
                                  G_context.tx_info.transaction.mpc_transfer.memo_u64);
             } else {
-                // TODO: Unsafe copy
-                memcpy(g_memo, &G_context.tx_info.transaction.mpc_transfer.memo, sizeof(g_memo));
-                replace_unreadable(g_memo, sizeof(g_memo));
-                g_memo[sizeof(g_memo) - 1] = 0;
+                set_memo_text(G_context.tx_info.transaction.mpc_transfer.memo,
+                              sizeof(G_context.tx_info.transaction.mpc_transfer.memo));
             }
         }
 
@@ -253,8 +259,6 @@ int ui_display_transaction(void) {
         if (!set_address(&G_context.tx_info.transaction.basic.contract_address))
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
-
-    // TODO: Blind Warning?
 
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
