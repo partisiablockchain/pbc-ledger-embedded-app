@@ -163,7 +163,78 @@ static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO[] = {
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd',
 };
 
+static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_1[255] = {
+    // nonce (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02,
+    // valid-to time (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x04,
+    // gas cost (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06,
+    // contract address (21): MPC token contract
+    0x01, 0xa4, 0x08, 0x2d, 0x9d, 0x56, 0x07, 0x49,
+    0xec, 0xd0, 0xff, 0xa1, 0xdc, 0xaa, 0xae, 0xe2,
+    0xc2, 0xcb, 0x25, 0xd8, 0x81,
+    // rpc length (4)
+    0x00, 0x00, 0x01, 0x42,
+    // shortname (1)
+    0x17,
+    // recipient (21)
+    0x00, 0xc3, 0x39, 0x97, 0x54, 0x4e, 0x31, 0x75,
+    0xd2, 0x66, 0xbd, 0x02, 0x24, 0x39, 0xb2, 0x2c,
+    0xdb, 0x16, 0x50, 0x8c, 0x7a,
+    // Token amount (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x33,
+    // Large memo size (4)
+    0x00, 0x00, 0x01, 0x20,
+    // Large memo data (var)
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+};
+
+static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_2[] = {
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+};
+
 // clang-format on
+
+static uint8_t ADDRESS_GENERIC_CONTRACT[21] = {
+    0x02, 0xc3, 0x39, 0x97, 0x54, 0x4e, 0x31, 0x75,
+    0xd2, 0x66, 0xbd, 0x02, 0x24, 0x39, 0xb2, 0x2c,
+    0xdb, 0x16, 0x50, 0x8c, 0x7a,
+};
+
+static uint8_t ADDRESS_MPC_TOKEN[21] = {
+    0x01, 0xa4, 0x08, 0x2d, 0x9d, 0x56, 0x07, 0x49,
+    0xec, 0xd0, 0xff, 0xa1, 0xdc, 0xaa, 0xae, 0xe2,
+    0xc2, 0xcb, 0x25, 0xd8, 0x81,
+};
+
+static uint8_t ADDRESS_RECIPIENT[21] = {
+    0x00, 0xc3, 0x39, 0x97, 0x54, 0x4e, 0x31, 0x75,
+    0xd2, 0x66, 0xbd, 0x02, 0x24, 0x39, 0xb2, 0x2c,
+    0xdb, 0x16, 0x50, 0x8c, 0x7a,
+};
 
 //// Tests
 
@@ -192,7 +263,7 @@ static void test_tx_serialization_generic(void **state) {
     assert_int_equal(tx.basic.nonce, 0x102);
     assert_int_equal(tx.basic.valid_to_time, 0x304);
     assert_int_equal(tx.basic.gas_cost, 0x506);
-    // TODO: assert_int_equal(tx.basic.contract_address, 0x102);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_GENERIC_CONTRACT, 21);
     assert_int_equal(tx.type, GENERIC_TRANSACTION);
 }
 
@@ -221,9 +292,9 @@ static void test_tx_serialization_mpc_token_transfer(void **state) {
     assert_int_equal(tx.basic.nonce, 0x102);
     assert_int_equal(tx.basic.valid_to_time, 0x304);
     assert_int_equal(tx.basic.gas_cost, 0x506);
-    // TODO: assert_int_equal(tx.basic.contract_address, 0x102);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
     assert_int_equal(tx.type, MPC_TRANSFER);
-    // TODO: assert_int_equal(tx.mpc_transfer.recipient_address, );
+    assert_memory_equal(tx.mpc_transfer.recipient_address.raw_bytes, ADDRESS_RECIPIENT, 21);
     assert_int_equal(tx.mpc_transfer.token_amount, 0x333);
     assert_int_equal(tx.mpc_transfer.memo_length, 0);
 }
@@ -253,7 +324,7 @@ static void test_tx_serialization_mpc_token_transfer_but_too_many_bytes(void **s
     assert_int_equal(tx.basic.nonce, 0x102);
     assert_int_equal(tx.basic.valid_to_time, 0x304);
     assert_int_equal(tx.basic.gas_cost, 0x506);
-    // TODO: assert_int_equal(tx.basic.contract_address, 0x102);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
     assert_int_equal(tx.type, GENERIC_TRANSACTION);
 }
 
@@ -282,11 +353,12 @@ static void test_tx_serialization_mpc_token_transfer_small_memo(void **state) {
     assert_int_equal(tx.basic.nonce, 0x102);
     assert_int_equal(tx.basic.valid_to_time, 0x304);
     assert_int_equal(tx.basic.gas_cost, 0x506);
-    // TODO: assert_int_equal(tx.basic.contract_address, 0x102);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
     assert_int_equal(tx.type, MPC_TRANSFER);
     assert_int_equal(tx.mpc_transfer.memo_length, 8);
     assert_true(tx.mpc_transfer.has_u64_memo);
     assert_int_equal(tx.mpc_transfer.memo_u64, 0x9999);
+    assert_memory_equal(tx.mpc_transfer.recipient_address.raw_bytes, ADDRESS_RECIPIENT, 21);
 }
 
 static void test_tx_serialization_mpc_token_transfer_large_memo(void **state) {
@@ -314,11 +386,59 @@ static void test_tx_serialization_mpc_token_transfer_large_memo(void **state) {
     assert_int_equal(tx.basic.nonce, 0x102);
     assert_int_equal(tx.basic.valid_to_time, 0x304);
     assert_int_equal(tx.basic.gas_cost, 0x506);
-    // TODO: assert_int_equal(tx.basic.contract_address, 0x102);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
     assert_int_equal(tx.type, MPC_TRANSFER);
     assert_int_equal(tx.mpc_transfer.memo_length, 11);
+    assert_memory_equal(tx.mpc_transfer.recipient_address.raw_bytes, ADDRESS_RECIPIENT, 21);
     assert_false(tx.mpc_transfer.has_u64_memo);
     assert_string_equal(tx.mpc_transfer.memo, "Hello World");
+}
+
+static void test_tx_serialization_mpc_token_transfer_large_multichunk_memo(void **state) {
+    // Setup first chunk
+    (void) state;
+    uint8_t raw_tx[255];
+    memcpy(raw_tx,
+           &TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_1,
+           sizeof(TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_1));
+    buffer_t buf = {.ptr = raw_tx,
+                    .size = sizeof(TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_1),
+                    .offset = 0};
+
+    // Run test
+    transaction_parsing_state_t parsing_state;
+    transaction_t tx;
+
+    transaction_parser_init(&parsing_state);
+    parser_status_e status = transaction_parser_update(&parsing_state, &buf, &tx);
+
+    // Check internal state of parser
+    assert_int_equal(status, PARSING_CONTINUE);
+    assert_int_equal(parsing_state.rpc_bytes_total, 30 + 4 + 0x120);
+    assert_int_equal(parsing_state.rpc_bytes_parsed, 0xff - 8 - 8 - 8 - 21 - 4);  // TODO
+
+    // Next chunk
+    memcpy(raw_tx,
+           &TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_2,
+           sizeof(TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_2));
+    buf.ptr = raw_tx;
+    buf.size = sizeof(TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_2);
+    buf.offset = 0;
+
+    status = transaction_parser_update(&parsing_state, &buf, &tx);
+
+    // Check internal state of parser
+    assert_int_equal(status, PARSING_DONE);
+    assert_int_equal(parsing_state.rpc_bytes_total, 30 + 4 + 0x120);
+    assert_int_equal(parsing_state.rpc_bytes_parsed, 30 + 4 + 0x120);
+
+    // Check output
+    assert_int_equal(tx.basic.nonce, 0x102);
+    assert_int_equal(tx.basic.valid_to_time, 0x304);
+    assert_int_equal(tx.basic.gas_cost, 0x506);
+    assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
+    assert_int_equal(tx.type,
+                     GENERIC_TRANSACTION);  // Too large to be easily parsed; default to blind-sign
 }
 
 // TODO: Need tests cut-off stuff.
@@ -330,6 +450,7 @@ int main() {
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_but_too_many_bytes),
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_small_memo),
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_large_memo),
+        cmocka_unit_test(test_tx_serialization_mpc_token_transfer_large_multichunk_memo),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

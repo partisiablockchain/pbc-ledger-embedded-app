@@ -76,7 +76,7 @@ TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_AND_SMALL = Transaction(
     chain_id=b'TESTNET',  # TODO
 )
 
-TRANSACTION_MPC_TRANSFER_WITH_MEMO_VERY_LARGE = Transaction(
+TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_VERY = Transaction(
     nonce=0x111,
     valid_to_time=0x222,
     gas_cost=0x333,
@@ -117,7 +117,7 @@ VALID_TRANSACTIONS = [
     ('mpc_memo_large', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE, False),
     ('mpc_memo_large_empty', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_AND_EMPTY, False),
     ('mpc_memo_large_small', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_AND_SMALL, False),
-    ('mpc_memo_large_very', TRANSACTION_MPC_TRANSFER_WITH_MEMO_VERY_LARGE, False),
+    ('mpc_memo_large_very', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_VERY, False),
     ('almost_an_mpc_transfer', TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME, True),
 ]
 

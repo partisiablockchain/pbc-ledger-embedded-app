@@ -42,9 +42,20 @@ static uint32_t min(uint32_t a, uint32_t b) {
 }
 
 /**
+ * Reads as many bytes as possible from the buffer, but at most out_len.
+ * Returns the number of bytes read.
+ */
+static size_t buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
+    size_t amount_read = min(out_len, buffer->size - buffer->offset);
+    memmove(out, buffer->ptr + buffer->offset, amount_read);
+    buffer_seek_cur(buffer, amount_read);
+    return amount_read;
+}
+
+/**
  * Reads out_len bytes to the out buffer
  */
-static bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
+static bool buffer_read_bytes_precisely(buffer_t *buffer, uint8_t *out, size_t out_len) {
     if (!buffer_can_read(buffer, out_len)) {
         return false;
     }
@@ -57,7 +68,7 @@ static bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
  * Reads a contract_address_s from the given buffer.
  */
 static bool buffer_read_contract_address(buffer_t *buffer, blockchain_address_s *out) {
-    return buffer_read_bytes(buffer, out->raw_bytes, sizeof(out->raw_bytes));
+    return buffer_read_bytes_precisely(buffer, out->raw_bytes, sizeof(out->raw_bytes));
 }
 
 static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
@@ -77,12 +88,7 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         }
 
         // MPC Amount
-        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
-            return false;
-        }
-
-        // RPC must not contain any more data
-        return chunk->offset == chunk->size;
+        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE);
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
         tx->type = MPC_TRANSFER;
@@ -98,14 +104,13 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
             return false;
         }
 
-        // TODO: Needs to be interpreted as a long.
+        // Short memo (u64)
         if (!buffer_read_u64(chunk, &tx->mpc_transfer.memo_u64, BE)) {
             return false;
         }
         tx->mpc_transfer.has_u64_memo = true;
 
-        // RPC must not contain any more data
-        return chunk->offset == chunk->size;
+        return true;
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE) {
         tx->type = MPC_TRANSFER;
@@ -126,15 +131,16 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
             return false;
         }
 
-        // Read memo
-        // TODO: Unsafe
-        tx->mpc_transfer.memo_length = memo_length;
-        if (!buffer_read_bytes(chunk, tx->mpc_transfer.memo, memo_length)) {
+        // Read long memo
+        size_t read_bytes = buffer_read_bytes(chunk, tx->mpc_transfer.memo, memo_length);
+        if (read_bytes < memo_length) {
             return false;
         }
+
+        tx->mpc_transfer.memo_length = memo_length;
         tx->mpc_transfer.has_u64_memo = false;
 
-        return true;  // Extra data is allowed (as we cannot guarentee that the memo is not larger than the current block.)
+        return true;
     } else {
         // Unknown shortname
         return false;
@@ -192,11 +198,11 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
 
         // Try to parse RPC
         size_t current_chunk_offset = chunk->offset;
-        if (parse_rpc(chunk, tx)) {
+        bool parsed_rpc = parse_rpc(chunk, tx);
+        bool rpc_parsing_consumed_entire_chunk = chunk->offset == chunk->size;
+        if (parsed_rpc && rpc_parsing_consumed_entire_chunk) {
             // If RPC could be parsed: No skipping required!
             state->rpc_bytes_parsed = state->rpc_bytes_total;
-
-            // TODO: Check that entire chunk has been consumed.
         } else {
             // If RPC couldn't be parsed. Mark as GENERIC. Reset and continue.
             chunk->offset = current_chunk_offset;
