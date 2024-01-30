@@ -177,7 +177,7 @@ static void replace_unreadable(char* str, size_t str_len) {
 }
 
 static void set_memo_text(uint8_t* text, size_t text_len) {
-  // TODO: Return error if not fully written
+    // TODO: Return error if not fully written
     size_t g_memo_len = sizeof(g_memo);
     size_t copy_amount = text_len < g_memo_len ? text_len : g_memo_len;
 
