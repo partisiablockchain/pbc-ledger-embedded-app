@@ -85,6 +85,14 @@ UX_STEP_CB(ux_display_step_reject,
                "Reject",
            });
 
+UX_STEP_NOCB(ux_display_step_prevent_approve_due_to_blind_signing,
+             pnn,
+             {
+                 &C_icon_crossmark,
+                 "Blind signing",
+                 "not enabled",
+             });
+
 // FLOW to display address:
 // #1 screen: eye icon + "Confirm Transaction"
 // #2 screen: display address
@@ -134,6 +142,16 @@ UX_STEP_NOCB(ux_display_step_review,
                  "Review",
                  g_review_text,
              });
+
+// Step with icon and text
+UX_STEP_NOCB(ux_display_step_blind_sign_warning,
+             pbb,
+             {
+                 &C_icon_warning,
+                 "Blind",
+                 "Signing",
+             });
+
 // Step with title/text for amount
 UX_STEP_NOCB(ux_display_step_gas_cost,
              bnnn_paging,
@@ -210,6 +228,7 @@ int ui_display_transaction(void) {
     }
 
     uint8_t ux_flow_idx = 0;
+    bool prevent_approval_due_to_blind_signing = false;
 
     // Display initial
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
@@ -248,16 +267,19 @@ int ui_display_transaction(void) {
 
     } else {
         // Blind sign
-        snprintf(g_review_text, sizeof(g_review_text), "Blind Interaction");
+        snprintf(g_review_text, sizeof(g_review_text), "Transaction");
 
-        // TODO: Change review icon
-        // TODO: Blind sign settings toggle
+        // Warning
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_blind_sign_warning;
 
         // Display contract address
         snprintf(g_address_title, sizeof(g_address_title), "Contract");
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-        if (!set_address(&G_context.tx_info.transaction.basic.contract_address))
+        if (!set_address(&G_context.tx_info.transaction.basic.contract_address)) {
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+        }
+
+        prevent_approval_due_to_blind_signing = !N_storage.allow_blind_signing;
     }
 
     // Display gas cost
@@ -268,7 +290,12 @@ int ui_display_transaction(void) {
                      G_context.tx_info.transaction.basic.gas_cost);
 
     // Setup UI flow
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_approve;
+    if (prevent_approval_due_to_blind_signing) {
+        ux_display_transaction_flow[ux_flow_idx++] =
+            &ux_display_step_prevent_approve_due_to_blind_signing;
+    } else {
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_approve;
+    }
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_reject;
     ux_display_transaction_flow[ux_flow_idx++] = FLOW_END_STEP;
 
