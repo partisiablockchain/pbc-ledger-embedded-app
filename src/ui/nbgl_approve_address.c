@@ -76,7 +76,7 @@ int ui_display_address() {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
-    if (!set_address(&address)) {
+    if (!set_g_address(&address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 

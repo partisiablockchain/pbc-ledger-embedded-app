@@ -123,7 +123,7 @@ int ui_display_transaction() {
     }
 
     // Update gas cost
-    set_token_amount(g_gas_cost,
+    set_g_token_amount(g_gas_cost,
                      sizeof(g_gas_cost),
                      "Gas",
                      G_context.tx_info.transaction.basic.gas_cost);
@@ -134,10 +134,10 @@ int ui_display_transaction() {
     if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
         // MPC Transfer
 
-        set_text_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
+        set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
 
         nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
-                                "Review transaction\nto send MPC",
+                                "Review transaction to send MPC",
                                 NULL,
                                 "Reject transaction",
                                 review_mpc_transfer,
@@ -146,13 +146,13 @@ int ui_display_transaction() {
         // Blind sign
 
         // Display contract address
-        if (!set_address(&G_context.tx_info.transaction.basic.contract_address)) {
+        if (!set_g_address(&G_context.tx_info.transaction.basic.contract_address)) {
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
         }
 
-          // TODO: Blind signing warning
+        // TODO: Blind signing warning
         nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
-                                "Review transaction\nto send MPC", // TODO
+                                "Review blind PBC transaction",
                                 NULL,
                                 "Reject transaction",
                                 review_blind_interaction,

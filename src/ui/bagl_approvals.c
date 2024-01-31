@@ -112,7 +112,8 @@ int ui_display_address() {
     if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
-    if (!blockchain_address_format(&address, g_address, sizeof(g_address))) {
+
+    if (!set_g_address(&address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
@@ -194,7 +195,7 @@ int ui_display_transaction(void) {
         // Display recipient
         snprintf(g_address_title, sizeof(g_address_title), "Recipient");
 
-        set_text_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
+        set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
 
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
 
@@ -211,7 +212,7 @@ int ui_display_transaction(void) {
         // Display contract address
         snprintf(g_address_title, sizeof(g_address_title), "Contract");
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-        if (!set_address(&G_context.tx_info.transaction.basic.contract_address)) {
+        if (!set_g_address(&G_context.tx_info.transaction.basic.contract_address)) {
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
         }
 
@@ -220,7 +221,7 @@ int ui_display_transaction(void) {
 
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
-    set_token_amount(g_gas_cost,
+    set_g_token_amount(g_gas_cost,
                      sizeof(g_gas_cost),
                      "Gas",
                      G_context.tx_info.transaction.basic.gas_cost);
