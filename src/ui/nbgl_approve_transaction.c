@@ -68,7 +68,7 @@ static void review_choice(bool confirm) {
     }
 }
 
-static void review_blind_interaction(void) {
+static void review_blind_transaction(void) {
     // Setup data to display
     pairs[0].item = "Fees";
     pairs[0].value = g_gas_cost;
@@ -155,7 +155,7 @@ int ui_display_transaction() {
                                 "Review blind PBC transaction",
                                 NULL,
                                 "Reject transaction",
-                                review_blind_interaction,
+                                review_blind_transaction,
                                 ask_transaction_rejection_confirmation);
     }
 
