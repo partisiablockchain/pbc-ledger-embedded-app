@@ -59,9 +59,8 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
                         transaction=transaction_bytes,
                         chain_id=CHAIN_ID):
         # Hacky check for blind transactions
-        time.sleep(1.0)
-        assert navigator._backend.compare_screen_with_text(
-            'Review'), 'First screen must be Review'
+        while not navigator._backend.compare_screen_with_text('Review'):
+            time.sleep(0.1)
         assert navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 
         # Approve

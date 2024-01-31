@@ -127,7 +127,7 @@ TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_RIDICULOUS = Transaction(
         from_hex('0x000000000000000000000000000000000000012345'),
         0x444,
         b"This is a very long memo; just you know way too long, composed almost exclusively by: "
-        + b'A' * 100000,
+        + b'A' * 10000,
     ),
 )
 

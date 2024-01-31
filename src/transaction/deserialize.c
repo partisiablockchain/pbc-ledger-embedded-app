@@ -102,8 +102,16 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
             return false;
         }
 
+        // Check that the memo can be read into the buffer
+        if (memo_length > sizeof(tx->mpc_transfer.memo)) {
+            return false;
+        }
+
         // Read long memo
         size_t read_bytes = buffer_read_bytes(chunk, tx->mpc_transfer.memo, memo_length);
+
+        // Check that the entire memo was read, and not just a part (such that
+        // the rest of the memo is on the next chunk.)
         if (read_bytes < memo_length) {
             return false;
         }
@@ -167,9 +175,9 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
 
         // Try to parse RPC
         size_t current_chunk_offset = chunk->offset;
-        bool parsed_rpc = parse_rpc(chunk, tx);
+        bool could_parse_rpc = parse_rpc(chunk, tx);
         bool rpc_parsing_consumed_entire_chunk = chunk->offset == chunk->size;
-        if (parsed_rpc && rpc_parsing_consumed_entire_chunk) {
+        if (could_parse_rpc && rpc_parsing_consumed_entire_chunk) {
             // If RPC could be parsed: No skipping required!
             state->rpc_bytes_parsed = state->rpc_bytes_total;
         } else {
