@@ -6,22 +6,25 @@ from application_client.command_sender import PbcCommandSender, Errors
 from application_client.response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID
-from utils import ROOT_SCREENSHOT_PATH, KEY_PATH
+from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_ID
 import transaction_examples
+
 
 def enable_blind_sign(firmware, navigator):
     if firmware.device.startswith("nano"):
         instructions = [
-            NavInsID.RIGHT_CLICK, # From "ready" to "version"
-            NavInsID.RIGHT_CLICK, # From "version" to "settings"
-            NavInsID.BOTH_CLICK, # From "settings" to "blind sign"
-            NavInsID.BOTH_CLICK, # Enable blind sign
-            NavInsID.RIGHT_CLICK, # From "blind sign" to "back"
-            NavInsID.BOTH_CLICK, # From "back" to "ready"
+            NavInsID.RIGHT_CLICK,  # From "ready" to "version"
+            NavInsID.RIGHT_CLICK,  # From "version" to "settings"
+            NavInsID.BOTH_CLICK,  # From "settings" to "blind sign"
+            NavInsID.BOTH_CLICK,  # Enable blind sign
+            NavInsID.RIGHT_CLICK,  # From "blind sign" to "back"
+            NavInsID.BOTH_CLICK,  # From "back" to "ready"
         ]
-        navigator.navigate(instructions, screen_change_before_first_instruction=False)
+        navigator.navigate(instructions,
+                           screen_change_before_first_instruction=False)
     else:
-        pass # TODO
+        pass  # TODO
+
 
 def move_to_end_and_approve(firmware, navigator, test_name):
     # Validate the on-screen request by performing the navigation appropriate for this device
@@ -39,7 +42,8 @@ def move_to_end_and_approve(firmware, navigator, test_name):
             ], "Hold to sign", ROOT_SCREENSHOT_PATH, test_name)
 
 
-@pytest.mark.parametrize("transaction_name,transaction", transaction_examples.BLIND_TRANSACTIONS)
+@pytest.mark.parametrize("transaction_name,transaction",
+                         transaction_examples.BLIND_TRANSACTIONS)
 def test_sign_blind_transaction(firmware, backend, navigator, test_name,
                                 transaction_name, transaction):
     client = PbcCommandSender(backend)
@@ -51,10 +55,13 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     enable_blind_sign(firmware, navigator)
 
-    with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
+    with client.sign_tx(path=KEY_PATH,
+                        transaction=transaction_bytes,
+                        chain_id=CHAIN_ID):
         # Hacky check for blind transactions
         time.sleep(1.0)
-        assert navigator._backend.compare_screen_with_text('Review'), 'First screen must be Review'
+        assert navigator._backend.compare_screen_with_text(
+            'Review'), 'First screen must be Review'
         assert navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 
         # Approve
@@ -63,11 +70,13 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, der_sig)
+    assert transaction.verify_signature(public_key, der_sig, CHAIN_ID)
 
-@pytest.mark.parametrize("transaction_name,transaction", transaction_examples.MPC_TRANSFER_TRANSACTIONS)
+
+@pytest.mark.parametrize("transaction_name,transaction",
+                         transaction_examples.MPC_TRANSFER_TRANSACTIONS)
 def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
-                                transaction_name, transaction):
+                           transaction_name, transaction):
     client = PbcCommandSender(backend)
 
     rapdu = client.get_public_key(path=KEY_PATH)
@@ -75,10 +84,13 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 
     transaction_bytes = transaction.serialize()
 
-    with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
+    with client.sign_tx(path=KEY_PATH,
+                        transaction=transaction_bytes,
+                        chain_id=CHAIN_ID):
         # Hacky check for blind transactions
         time.sleep(1.0)
-        assert navigator._backend.compare_screen_with_text('Review'), 'First screen must be Review'
+        assert navigator._backend.compare_screen_with_text(
+            'Review'), 'First screen must be Review'
         assert not navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 
         # Approve
@@ -87,7 +99,7 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 
     response = client.get_async_response().data
     _, der_sig, _ = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, der_sig)
+    assert transaction.verify_signature(public_key, der_sig, CHAIN_ID)
 
 
 # Transaction signature refused test
@@ -99,11 +111,14 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
     rapdu = client.get_public_key(path=KEY_PATH)
     _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
-    transaction_bytes = transaction_examples.TRANSACTION_GENERIC_CONTRACT.serialize()
+    transaction_bytes = transaction_examples.TRANSACTION_GENERIC_CONTRACT.serialize(
+    )
 
     if firmware.device.startswith("nano"):
         with pytest.raises(ExceptionRAPDU) as e:
-            with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
+            with client.sign_tx(path=KEY_PATH,
+                                transaction=transaction_bytes,
+                                chain_id=CHAIN_ID):
                 navigator.navigate_until_text_and_compare(
                     NavInsID.RIGHT_CLICK, [NavInsID.BOTH_CLICK], "Reject",
                     ROOT_SCREENSHOT_PATH, test_name)
@@ -121,7 +136,8 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             ]
             with pytest.raises(ExceptionRAPDU) as e:
                 with client.sign_tx(path=KEY_PATH,
-                                    transaction=transaction_bytes):
+                                    transaction=transaction_bytes,
+                                    chain_id=CHAIN_ID):
                     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                                    test_name + f"/part{i}",
                                                    instructions)
@@ -137,4 +153,5 @@ if __name__ == '__main__':
     with LedgerWalletBackend(Firmware.NANOS) as backend:
         test_sign_valid_transaction(Firmware.NANOS, backend, None, 'test',
                                     'test',
-                                    TRANSACTION_MPC_TRANSFER_WITH_MEMO_SMALL , True)
+                                    TRANSACTION_MPC_TRANSFER_WITH_MEMO_SMALL,
+                                    True)

@@ -63,18 +63,20 @@ typedef struct {
     };
 } mpc_transfer_transaction_type_s;
 
+#define CHAIN_ID_LENGTH 7
+
 /**
  * Short id representing the chain that a transaction is targeting.
  */
-typedef enum {
-    UNKNOWN = 0,
-    MAINNET = 1,
-    TESTNET = 2,
+typedef struct {
+  uint8_t raw_bytes[CHAIN_ID_LENGTH];
 } chain_id_t;
 
 /**
  * Basic and common transaction information
  *
+                                            Does not include RPC as these bytes are handled separately.
+
  * @see
  * https://partisiablockchain.gitlab.io/documentation/smart-contracts/transaction-binary-format.html
  */
@@ -83,8 +85,6 @@ typedef struct {
     uint64_t valid_to_time;  /// last block height that transaction is valid for (not shown in UI)
     uint64_t gas_cost;       /// amount of gas to be used for this transaction
     blockchain_address_s contract_address;  /// contract address to interact with
-    chain_id_t chain_id;                    /// which chain the transaction is targeting
-                                            /// Does not include RPC. Is handled separately
 } transaction_basic_t;                      // TODO: transaction_t is a bit disengenious
 
 /**

@@ -49,11 +49,12 @@ typedef struct {
 typedef struct {
     transaction_parsing_state_t transaction_parser_state;  // Transaction parser state
     transaction_t transaction;                             /// structured transaction
-    cx_sha256_t digest_state;                              /// TODO
-    uint8_t m_hash[CX_SHA256_SIZE];                        /// message hash digest
-    uint8_t signature[MAX_DER_SIG_LEN];                    /// transaction signature encoded in DER
-    uint8_t signature_len;                                 /// length of transaction signature
-    uint8_t v;  /// parity of y-coordinate of R in ECDSA signature
+    chain_id_t chain_id;                 /// which chain the transaction is targeting
+    cx_sha256_t digest_state;            /// TODO
+    uint8_t m_hash[CX_SHA256_SIZE];      /// message hash digest
+    uint8_t signature[MAX_DER_SIG_LEN];  /// transaction signature encoded in DER
+    uint8_t signature_len;               /// length of transaction signature
+    uint8_t v;                           /// parity of y-coordinate of R in ECDSA signature
 } transaction_ctx_t;
 
 /**

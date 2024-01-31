@@ -28,6 +28,7 @@
 #include "../status_words.h"
 #include "../globals.h"
 #include "../ui/display.h"
+#include "../buffer_util.h"
 #include "../transaction/types.h"
 #include "../transaction/deserialize.h"
 
@@ -42,7 +43,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
     // 4. When accepted: Sign and return
 
     // first chunk, parse BIP32 path
-    if (chunk_idx == 0) {
+    if (chunk_idx == 0) { // TODO?
         explicit_bzero(&G_context, sizeof(G_context));
         G_context.req_type = CONFIRM_TRANSACTION;
         G_context.state = STATE_NONE;
@@ -57,6 +58,11 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
                                     G_context.bip32_path,
                                     (size_t) G_context.bip32_path_len)) {
             return io_send_sw(SW_WRONG_DATA_LENGTH);
+        }
+
+        // Read chain id
+        if (!buffer_read_chain_id(chunk_data, &G_context.tx_info.chain_id)) {
+            return io_send_sw(SW_INVALID_CHAIN_ID);
         }
 
         // Initial hashing context in preparation
@@ -106,10 +112,13 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         G_context.state = STATE_PARSED;
 
         // Add chain id to hash
-        uint8_t CHAIN_ID[11] = {0, 0, 0, 7, 'T', 'E', 'S', 'T', 'N', 'E', 'T'};  // TODO?
+        uint8_t CHAIN_ID_PREFIX[4] = {0, 0, 0, CHAIN_ID_LENGTH};
         status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
-                                        (uint8_t *) CHAIN_ID,
-                                        sizeof(CHAIN_ID));
+                                        (uint8_t *) CHAIN_ID_PREFIX,
+                                        sizeof(CHAIN_ID_PREFIX));
+        status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
+                                        G_context.tx_info.chain_id.raw_bytes,
+                                        CHAIN_ID_LENGTH);
         if (status_hashing != CX_OK) {
             return io_send_sw(SW_TX_HASH_FAIL);
         }

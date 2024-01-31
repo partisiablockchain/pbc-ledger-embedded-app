@@ -39,7 +39,6 @@ class Transaction(Serializable):
     gas_cost: int
     contract_address: bytes
     rpc: Union[bytes, Serializable]
-    chain_id: bytes
 
     def __post_init__(self):
         if not 0 <= self.nonce <= UINT64_MAX:
@@ -56,9 +55,6 @@ class Transaction(Serializable):
             raise TransactionError(
                 f"Bad address: '{self.contract_address.hex()}'!")
 
-        if self.chain_id not in {b'TESTNET', b'MAINNET'}:
-            raise TransactionError(f"Unknown chain id: '{self.chain_id}'!")
-
     def serialize(self) -> bytes:
         rpc = self.rpc if isinstance(self.rpc, bytes) else self.rpc.serialize()
         return b"".join([
@@ -70,19 +66,20 @@ class Transaction(Serializable):
             rpc,
         ])
 
-    def serialize_for_signing(self) -> bytes:
-        return b''.join([
+    def verify_signature(self, public_key: bytes, signature: bytes,
+                         chain_id: bytes):
+        bytes_to_sign = b''.join([
             self.serialize(),
-            len(self.chain_id).to_bytes(4, byteorder="big"),
-            self.chain_id,
+            len(chain_id).to_bytes(4, byteorder="big"),
+            chain_id,
         ])
 
-    def verify_signature(self, public_key: bytes, signature: bytes):
         pk: VerifyingKey = VerifyingKey.from_string(public_key,
                                                     curve=SECP256k1,
                                                     hashfunc=sha256)
+
         return pk.verify(signature=signature,
-                         data=self.serialize_for_signing(),
+                         data=bytes_to_sign,
                          hashfunc=sha256,
                          sigdecode=sigdecode_der)
 
