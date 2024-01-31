@@ -32,7 +32,7 @@ TRANSACTION_GENERIC_CONTRACT_HUGE_RPC = Transaction(
     valid_to_time=0x222,
     gas_cost=0x333,
     contract_address=from_hex("0x01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
-    rpc=from_hex('0xdeadbeef') * 10000,
+    rpc=from_hex('0xf0') * (207 + 255*100),
     chain_id=b'TESTNET',  # TODO?
 )
 
@@ -148,16 +148,13 @@ BLIND_TRANSACTIONS = [
     ('generic', TRANSACTION_GENERIC_CONTRACT),
     ('almost_an_mpc_transfer', TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME),
     ('generic_one_chunk', TRANSACTION_GENERIC_CONTRACT_PRECISELY_ONE_CHUNK),
-    ('generic_over_one_chunk',
-     TRANSACTION_GENERIC_CONTRACT_PRECISELY_OVER_ONE_CHUNK),
+    ('generic_over_one_chunk', TRANSACTION_GENERIC_CONTRACT_PRECISELY_OVER_ONE_CHUNK),
     ('generic_huge', TRANSACTION_GENERIC_CONTRACT_HUGE_RPC),
 
     # MPC transactions with memos that are too large for displaying
-    ('mpc_memo_large_just_exactly_one_chunk',
-     TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_PRECISELY_ONE_CHUNK),
+    ('mpc_memo_large_just_exactly_one_chunk', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_PRECISELY_ONE_CHUNK),
     ('mpc_memo_large_very', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_VERY),
-    ('mpc_memo_large_ridiculous',
-     TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_RIDICULOUS),
+    ('mpc_memo_large_ridiculous', TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_RIDICULOUS),
 ]
 
 MPC_TRANSFER_TRANSACTIONS = [

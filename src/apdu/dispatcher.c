@@ -69,11 +69,17 @@ int apdu_dispatcher(const command_t *cmd) {
 
             return handler_get_public_key(&buf, (bool) cmd->p1);
         case SIGN_TX:
-            if ((cmd->p1 == P1_START && cmd->p2 != P2_MORE) ||  //
-                cmd->p1 > P1_MAX ||                             //
-                (cmd->p2 != P2_LAST && cmd->p2 != P2_MORE)) {
+            /* TODO? There might be good reasons to require some invariants on
+             * how much data can be sent to the device, to prevent DoS?
+
+            if (cmd->p1 == P1_START && cmd->p2 != P2_MORE) {
+                return io_send_sw(SW_WRONG_P1P2);
+            } else if (cmd->p1 > P1_MAX) {
+                return io_send_sw(SW_WRONG_P1P2);
+            } else if (cmd->p2 != P2_LAST && cmd->p2 != P2_MORE) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
+            */
 
             if (!cmd->data) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);

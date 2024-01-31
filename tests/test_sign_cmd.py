@@ -9,16 +9,19 @@ from ragger.navigator import NavInsID
 from utils import ROOT_SCREENSHOT_PATH, KEY_PATH
 import transaction_examples
 
-def enable_blind_sign(navigator):
-    instructions = [
-        NavInsID.RIGHT_CLICK, # From "ready" to "version"
-        NavInsID.RIGHT_CLICK, # From "version" to "settings"
-        NavInsID.BOTH_CLICK, # From "settings" to "blind sign"
-        NavInsID.BOTH_CLICK, # Enable blind sign
-        NavInsID.RIGHT_CLICK, # From "blind sign" to "back"
-        NavInsID.BOTH_CLICK, # From "back" to "ready"
-    ]
-    navigator.navigate(instructions, screen_change_before_first_instruction=False)
+def enable_blind_sign(firmware, navigator):
+    if firmware.device.startswith("nano"):
+        instructions = [
+            NavInsID.RIGHT_CLICK, # From "ready" to "version"
+            NavInsID.RIGHT_CLICK, # From "version" to "settings"
+            NavInsID.BOTH_CLICK, # From "settings" to "blind sign"
+            NavInsID.BOTH_CLICK, # Enable blind sign
+            NavInsID.RIGHT_CLICK, # From "blind sign" to "back"
+            NavInsID.BOTH_CLICK, # From "back" to "ready"
+        ]
+        navigator.navigate(instructions, screen_change_before_first_instruction=False)
+    else:
+        pass # TODO
 
 def move_to_end_and_approve(firmware, navigator, test_name):
     # Validate the on-screen request by performing the navigation appropriate for this device
@@ -46,7 +49,7 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     transaction_bytes = transaction.serialize()
 
-    enable_blind_sign(navigator)
+    enable_blind_sign(firmware, navigator)
 
     with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
         # Hacky check for blind transactions
