@@ -27,25 +27,21 @@
 #include "bip32.h"
 #include "format.h"
 
+#include "common.h"
 #include "display.h"
 #include "constants.h"
 #include "../globals.h"
 #include "../status_words.h"
-#include "../address.h"
 #include "action/validate.h"
 #include "../transaction/types.h"
 #include "../menu.h"
 
-#define PRIu64_MAX_LENGTH 20
-#define TOKEN_SUFFIX_LEN  3
+// Text buffer review text
+static char g_review_text[20];
+// Text buffer for title of address.
+static char g_address_title[10];
 
 static action_validate_cb g_validate_callback;
-static char g_gas_cost[PRIu64_MAX_LENGTH + 1];
-static char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
-static char g_address[2 * ADDRESS_LEN + 1];
-static char g_review_text[20];
-static char g_address_title[10];
-static char g_memo[MEMO_MAX_LENGTH + 1];  // TODO
 
 // Validate/Invalidate public key and go back to home
 static void ui_action_validate_pubkey(bool choice) {
@@ -104,13 +100,6 @@ UX_FLOW(ux_display_pubkey_flow,
         &ux_display_step_approve,
         &ux_display_step_reject);
 
-/**
- * Formats a blockchain_address_s as a hex string.
- */
-static bool blockchain_address_format(blockchain_address_s* address, char* out, size_t out_len) {
-    return format_hex(address->raw_bytes, ADDRESS_LEN, out, out_len) != -1;
-}
-
 int ui_display_address() {
     // Check current state
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
@@ -119,7 +108,6 @@ int ui_display_address() {
     }
 
     // Format address
-    memset(g_address, 0, sizeof(g_address));
     blockchain_address_s address;
     if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
@@ -184,42 +172,6 @@ UX_STEP_NOCB(ux_display_step_memo,
 // #5 screen : reject button
 const ux_flow_step_t* ux_display_transaction_flow[MAX_NUM_STEPS + 1];
 
-static void replace_unreadable(char* str, size_t str_len) {
-    for (size_t i = 0; i < str_len; i++) {
-        if (str[i] == 0) {
-            continue;
-        } else if (str[i] < ' ' || '~' < str[i]) {
-            str[i] = '?';
-        }
-    }
-}
-
-static void set_memo_text(uint8_t* text, size_t text_len) {
-    // TODO: Return error if not fully written
-    size_t g_memo_len = sizeof(g_memo);
-    size_t copy_amount = text_len < g_memo_len ? text_len : g_memo_len;
-
-    memcpy(g_memo, text, copy_amount);
-    replace_unreadable(g_memo, copy_amount);
-    g_memo[copy_amount - 1] = 0;
-}
-
-static bool set_address(blockchain_address_s* address) {
-    memset(g_address, 0, sizeof(g_address));
-    return blockchain_address_format(address, g_address, sizeof(g_address));
-}
-
-static void set_token_amount(char* out,
-                             size_t out_size,
-                             const char suffix[const TOKEN_SUFFIX_LEN + 1],
-                             uint64_t gas_cost) {
-    // TODO: Return error if amount is not fully written
-    char number_buffer[PRIu64_MAX_LENGTH + 1];
-    memset(number_buffer, 0, sizeof(number_buffer));
-    format_u64(number_buffer, sizeof(number_buffer), gas_cost);
-    snprintf(out, out_size, "%s %s", number_buffer, suffix);
-}
-
 int ui_display_transaction(void) {
     // Check current state
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {
@@ -241,29 +193,13 @@ int ui_display_transaction(void) {
 
         // Display recipient
         snprintf(g_address_title, sizeof(g_address_title), "Recipient");
+
+        set_text_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
+
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-        set_address(&G_context.tx_info.transaction.mpc_transfer.recipient_address);
 
         // Display token transfer amount
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
-        set_token_amount(g_transfer_amount,
-                         sizeof(g_transfer_amount),
-                         "MPC",
-                         G_context.tx_info.transaction.mpc_transfer.token_amount);
-
-        // Display memo
-        if (G_context.tx_info.transaction.mpc_transfer.memo_length > 0) {
-            ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_memo;
-            if (G_context.tx_info.transaction.mpc_transfer.has_u64_memo) {
-                set_token_amount(g_memo,
-                                 sizeof(g_memo),
-                                 "",
-                                 G_context.tx_info.transaction.mpc_transfer.memo_u64);
-            } else {
-                set_memo_text(G_context.tx_info.transaction.mpc_transfer.memo,
-                              sizeof(G_context.tx_info.transaction.mpc_transfer.memo));
-            }
-        }
 
     } else {
         // Blind sign

@@ -28,6 +28,7 @@
 #include "bip32.h"
 #include "format.h"
 
+#include "common.h"
 #include "display.h"
 #include "constants.h"
 #include "../globals.h"
@@ -37,12 +38,7 @@
 #include "../transaction/types.h"
 #include "../menu.h"
 
-// Buffer where the transaction amount string is written
-static char g_amount[30];
-// Buffer where the transaction address string is written
-static char g_address[43];
-
-static nbgl_layoutTagValue_t pairs[2];
+static nbgl_layoutTagValue_t pairs[4];
 static nbgl_layoutTagValueList_t pairList;
 static nbgl_pageInfoLongPress_t infoLongPress;
 
@@ -72,11 +68,11 @@ static void review_choice(bool confirm) {
     }
 }
 
-static void review_continue(void) {
+static void review_blind_interaction(void) {
     // Setup data to display
-    pairs[0].item = "Amount";
-    pairs[0].value = g_amount;
-    pairs[1].item = "Address";
+    pairs[0].item = "Fees";
+    pairs[0].value = g_gas_cost;
+    pairs[1].item = "Contract";
     pairs[1].value = g_address;
 
     // Setup list
@@ -86,7 +82,31 @@ static void review_continue(void) {
 
     // Info long press
     infoLongPress.icon = &C_app_boilerplate_64px;
-    infoLongPress.text = "Sign transaction\nto send BOL";
+    infoLongPress.text = "Sign blind transaction to interact with PBC contract?";
+    infoLongPress.longPressText = "Hold to sign";
+
+    nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
+}
+
+static void review_mpc_transfer(void) {
+    // Setup data to display
+    pairs[0].item = "Amount";
+    pairs[0].value = g_transfer_amount;
+    pairs[1].item = "Fees";
+    pairs[1].value = g_gas_cost;
+    pairs[2].item = "To";
+    pairs[2].value = g_address;
+    pairs[3].item = "Memo";
+    pairs[3].value = g_memo;
+
+    // Setup list
+    pairList.nbMaxLinesForValue = 0;
+    pairList.nbPairs = 4;
+    pairList.pairs = pairs;
+
+    // Info long press
+    infoLongPress.icon = &C_app_boilerplate_64px;
+    infoLongPress.text = "Sign transaction\nto send MPC";
     infoLongPress.longPressText = "Hold to sign";
 
     nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
@@ -102,30 +122,44 @@ int ui_display_transaction() {
         return io_send_sw(SW_BAD_STATE);
     }
 
-    // Format amount and address to g_amount and g_address buffers
-    memset(g_amount, 0, sizeof(g_amount));
-    char amount[30] = {0};
-    if (!format_fpu64(amount,
-                      sizeof(amount),
-                      G_context.tx_info.transaction.value,
-                      EXPONENT_SMALLEST_UNIT)) {
-        return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
-    }
-    snprintf(g_amount, sizeof(g_amount), "BOL %.*s", sizeof(amount), amount);
-    memset(g_address, 0, sizeof(g_address));
+    // Update gas cost
+    set_token_amount(g_gas_cost,
+                     sizeof(g_gas_cost),
+                     "Gas",
+                     G_context.tx_info.transaction.basic.gas_cost);
 
-    if (format_hex(G_context.tx_info.transaction.to, ADDRESS_LEN, g_address, sizeof(g_address)) ==
-        -1) {
-        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+    // TODO: bool prevent_approval_due_to_blind_signing = false;
+
+    // Either setup clear-sign flows or blind-sign flows.
+    if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
+        // MPC Transfer
+
+        set_text_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
+
+        nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
+                                "Review transaction\nto send MPC",
+                                NULL,
+                                "Reject transaction",
+                                review_mpc_transfer,
+                                ask_transaction_rejection_confirmation);
+    } else {
+        // Blind sign
+
+        // Display contract address
+        if (!set_address(&G_context.tx_info.transaction.basic.contract_address)) {
+            return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+        }
+
+          // TODO: Blind signing warning
+        nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
+                                "Review transaction\nto send MPC", // TODO
+                                NULL,
+                                "Reject transaction",
+                                review_blind_interaction,
+                                ask_transaction_rejection_confirmation);
     }
 
     // Start review
-    nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
-                            "Review transaction\nto send BOL",
-                            NULL,
-                            "Reject transaction",
-                            review_continue,
-                            ask_transaction_rejection_confirmation);
     return 0;
 }
 

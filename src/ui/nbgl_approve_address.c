@@ -27,6 +27,7 @@
 #include "bip32.h"
 #include "format.h"
 
+#include "common.h"
 #include "display.h"
 #include "constants.h"
 #include "../globals.h"
@@ -36,7 +37,9 @@
 #include "../transaction/types.h"
 #include "../menu.h"
 
-static char g_address[43];
+#if !defined(HAVE_SHA256)
+#error "NBGL requires SHA256"
+#endif
 
 static void confirm_address_rejection(void) {
     // display a status page and go back to main
@@ -67,18 +70,18 @@ int ui_display_address() {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
-    memset(g_address, 0, sizeof(g_address));
-    uint8_t address[ADDRESS_LEN] = {0};
-    if (!address_from_pubkey(G_context.pk_info.raw_public_key, address, sizeof(address))) {
+
+    blockchain_address_s address;
+    if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
-    if (format_hex(address, sizeof(address), g_address, sizeof(g_address)) == -1) {
+    if (!set_address(&address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
     nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
-                            "Verify BOL address",
+                            "Verify PBC address",
                             NULL,
                             "Cancel",
                             continue_review,

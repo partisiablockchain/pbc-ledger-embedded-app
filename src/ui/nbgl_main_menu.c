@@ -58,8 +58,8 @@ static const char* const INFO_TYPES[] = {"Version", "Developer"};
 static const char* const INFO_CONTENTS[] = {APPVERSION, "Partisia Blockchain"};
 
 // settings switches definitions
-enum { DUMMY_SWITCH_1_TOKEN = FIRST_USER_TOKEN, DUMMY_SWITCH_2_TOKEN };
-enum { DUMMY_SWITCH_1_ID = 0, DUMMY_SWITCH_2_ID, SETTINGS_SWITCHES_NB };
+enum { BLIND_TRANSACTION_SWITCH_TOKEN = FIRST_USER_TOKEN };
+enum { BLIND_TRANSACTION_SWITCH_ID = 0, SETTINGS_SWITCHES_NB };
 
 static nbgl_layoutSwitch_t switches[SETTINGS_SWITCHES_NB] = {0};
 
@@ -76,17 +76,11 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
     }
     // the second settings page contains 2 toggle setting switches
     else if (page == 1) {
-        switches[DUMMY_SWITCH_1_ID].initState = (nbgl_state_t) N_storage.dummy1_allowed;
-        switches[DUMMY_SWITCH_1_ID].text = "Dummy 1";
-        switches[DUMMY_SWITCH_1_ID].subText = "Allow dummy 1\nin transactions";
-        switches[DUMMY_SWITCH_1_ID].token = DUMMY_SWITCH_1_TOKEN;
-        switches[DUMMY_SWITCH_1_ID].tuneId = TUNE_TAP_CASUAL;
-
-        switches[DUMMY_SWITCH_2_ID].initState = (nbgl_state_t) N_storage.dummy2_allowed;
-        switches[DUMMY_SWITCH_2_ID].text = "Dummy 2";
-        switches[DUMMY_SWITCH_2_ID].subText = "Allow dummy 2\nin transactions";
-        switches[DUMMY_SWITCH_2_ID].token = DUMMY_SWITCH_2_TOKEN;
-        switches[DUMMY_SWITCH_2_ID].tuneId = TUNE_TAP_CASUAL;
+        switches[BLIND_TRANSACTION_SWITCH_ID].initState = (nbgl_state_t) N_storage.allow_blind_signing;
+        switches[BLIND_TRANSACTION_SWITCH_ID].text = "Blind Signing";
+        switches[BLIND_TRANSACTION_SWITCH_ID].subText = "Allow Blind Signing\nin transactions";
+        switches[BLIND_TRANSACTION_SWITCH_ID].token = BLIND_TRANSACTION_SWITCH_TOKEN;
+        switches[BLIND_TRANSACTION_SWITCH_ID].tuneId = TUNE_TAP_CASUAL;
 
         content->type = SWITCHES_LIST;
         content->switchesList.nbSwitches = SETTINGS_SWITCHES_NB;
@@ -100,12 +94,11 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
 
 // callback for setting warning choice
 static void review_warning_choice(bool confirm) {
-    uint8_t switch_value;
     if (confirm) {
         // toggle the switch value
-        switch_value = !N_storage.dummy2_allowed;
+        uint8_t switch_value = !N_storage.allow_blind_signing;
         // store the new setting value in NVM
-        nvm_write((void*) &N_storage.dummy2_allowed, &switch_value, 1);
+        nvm_write((void*) &N_storage.allow_blind_signing, &switch_value, 1);
     }
 
     // return to the settings menu
@@ -114,31 +107,21 @@ static void review_warning_choice(bool confirm) {
 
 static void controls_callback(int token, uint8_t index) {
     UNUSED(index);
-    uint8_t switch_value;
-    if (token == DUMMY_SWITCH_1_TOKEN) {
-        // Dummy 1 switch touched
-        // toggle the switch value
-        switch_value = !N_storage.dummy1_allowed;
-        // store the new setting value in NVM
-        nvm_write((void*) &N_storage.dummy1_allowed, &switch_value, 1);
-    } else if (token == DUMMY_SWITCH_2_TOKEN) {
-        // Dummy 2 switch touched
+    if (token == BLIND_TRANSACTION_SWITCH_TOKEN) {
+        // Blind Signing switch touched
 
         // in this example we display a warning when the user wants
-        // to activate the dummy 2 setting
-        if (!N_storage.dummy2_allowed) {
+        // to activate the Blind Signing setting
+        if (!N_storage.allow_blind_signing) {
             // Display the warning message and ask the user to confirm
             nbgl_useCaseChoice(&C_warning64px,
-                               "Dummy 2",
-                               "Are you sure to\nallow dummy 2\nin transactions?",
+                               "Blind Signing",
+                               "Are you sure to\nallow Blind Signing\nin transactions?",
                                "I understand, confirm",
                                "Cancel",
                                review_warning_choice);
         } else {
-            // toggle the switch value
-            switch_value = !N_storage.dummy2_allowed;
-            // store the new setting value in NVM
-            nvm_write((void*) &N_storage.dummy2_allowed, &switch_value, 1);
+          review_warning_choice(true);
         }
     }
 }

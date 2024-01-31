@@ -136,10 +136,10 @@ def test_sign_valid_transaction(firmware, backend, navigator, test_name,
 
     with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
         # Hacky check for blind transactions
-        time.sleep(0.3)
+        time.sleep(1.0)
         print(navigator._backend.get_current_screen_content())
         assert navigator._backend.compare_screen_with_text('Review'), 'First screen must be Review'
-        reported_as_blind_transaction = navigator._backend.compare_screen_with_text('.*Blind.*')
+        reported_as_blind_transaction = navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
         assert reported_as_blind_transaction == is_blind_transaction, 'Transaction should only be reported as blind when expected'
 
         # Approve
@@ -189,3 +189,13 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             # Assert that we have received a refusal
             assert e.value.status == Errors.SW_DENY
             assert len(e.value.data) == 0
+
+
+if __name__ == '__main__':
+    from ragger.backend.ledgerwallet import LedgerWalletBackend
+    from ragger.firmware import Firmware
+
+    with LedgerWalletBackend(Firmware.NANOS) as backend:
+        test_sign_valid_transaction(Firmware.NANOS, backend, None, 'test',
+                                    'test',
+                                    TRANSACTION_MPC_TRANSFER_WITH_MEMO_SMALL , True)
