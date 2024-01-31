@@ -2,13 +2,12 @@ import pytest
 import time
 
 from application_client.transaction import Transaction, MpcTokenTransfer, from_hex
-from application_client.command_sender import BoilerplateCommandSender, Errors
+from application_client.command_sender import PbcCommandSender, Errors
 from application_client.response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID
 from utils import ROOT_SCREENSHOT_PATH, KEY_PATH
-
-import test_transactions
+import transaction_examples
 
 def enable_blind_sign(navigator):
     instructions = [
@@ -37,10 +36,10 @@ def move_to_end_and_approve(firmware, navigator, test_name):
             ], "Hold to sign", ROOT_SCREENSHOT_PATH, test_name)
 
 
-@pytest.mark.parametrize("transaction_name,transaction", test_transactions.BLIND_TRANSACTIONS)
+@pytest.mark.parametrize("transaction_name,transaction", transaction_examples.BLIND_TRANSACTIONS)
 def test_sign_blind_transaction(firmware, backend, navigator, test_name,
                                 transaction_name, transaction):
-    client = BoilerplateCommandSender(backend)
+    client = PbcCommandSender(backend)
 
     rapdu = client.get_public_key(path=KEY_PATH)
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
@@ -63,10 +62,10 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
     _, der_sig, _ = unpack_sign_tx_response(response)
     assert transaction.verify_signature(public_key, der_sig)
 
-@pytest.mark.parametrize("transaction_name,transaction", test_transactions.MPC_TRANSFER_TRANSACTIONS)
+@pytest.mark.parametrize("transaction_name,transaction", transaction_examples.MPC_TRANSFER_TRANSACTIONS)
 def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
                                 transaction_name, transaction):
-    client = BoilerplateCommandSender(backend)
+    client = PbcCommandSender(backend)
 
     rapdu = client.get_public_key(path=KEY_PATH)
     _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
@@ -92,12 +91,12 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 # The test will ask for a transaction signature that will be refused on screen
 def test_sign_tx_refused(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
-    client = BoilerplateCommandSender(backend)
+    client = PbcCommandSender(backend)
 
     rapdu = client.get_public_key(path=KEY_PATH)
     _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
-    transaction_bytes = test_transactions.TRANSACTION_GENERIC_CONTRACT.serialize()
+    transaction_bytes = transaction_examples.TRANSACTION_GENERIC_CONTRACT.serialize()
 
     if firmware.device.startswith("nano"):
         with pytest.raises(ExceptionRAPDU) as e:

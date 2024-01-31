@@ -1,4 +1,4 @@
-from application_client.command_sender import BoilerplateCommandSender
+from application_client.command_sender import PbcCommandSender
 from application_client.response_unpacker import unpack_get_app_name_response
 
 def test_app_name(backend):
@@ -6,7 +6,7 @@ def test_app_name(backend):
     In this test we check that the GET_APP_NAME replies the application name
     '''
     # Use the app interface instead of raw interface
-    client = BoilerplateCommandSender(backend)
+    client = PbcCommandSender(backend)
     # Send the GET_APP_NAME instruction to the app
     response = client.get_app_name()
     # Assert that we have received the correct appname
