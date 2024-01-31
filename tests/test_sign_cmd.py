@@ -50,7 +50,7 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     with client.sign_tx(path=KEY_PATH, transaction=transaction_bytes):
         # Hacky check for blind transactions
-        time.sleep(0.1)
+        time.sleep(1.0)
         assert navigator._backend.compare_screen_with_text('Review'), 'First screen must be Review'
         assert navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 

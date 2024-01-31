@@ -106,6 +106,7 @@ class PbcCommandSender:
                               p2=P2.P2_MORE,
                               data=pack_derivation_path(path))
         messages = split_message(transaction, MAX_APDU_LEN)
+        print([len(m) for m in messages])
         idx: int = P1.P1_START + 1
 
         for msg in messages[:-1]:
