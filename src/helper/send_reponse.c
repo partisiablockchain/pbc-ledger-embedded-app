@@ -33,6 +33,8 @@ int helper_send_response_pubkey() {
     resp[offset++] = PUBKEY_LEN;
     memmove(resp + offset, G_context.pk_info.raw_public_key, PUBKEY_LEN);
     offset += PUBKEY_LEN;
+
+    // TODO: remove this chaincode stuff?
     resp[offset++] = CHAINCODE_LEN;
     memmove(resp + offset, G_context.pk_info.chain_code, CHAINCODE_LEN);
     offset += CHAINCODE_LEN;

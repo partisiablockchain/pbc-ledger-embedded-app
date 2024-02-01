@@ -63,13 +63,18 @@ typedef struct {
     };
 } mpc_transfer_transaction_type_s;
 
-#define CHAIN_ID_LENGTH 7
+/**
+ * Must be large enough to be able to contain both "Partisia Blockchain" and "Partisia Blockchain
+ * Testnet".
+ */
+#define CHAIN_ID_MAX_LENGTH 27
 
 /**
  * Short id representing the chain that a transaction is targeting.
  */
 typedef struct {
-    uint8_t raw_bytes[CHAIN_ID_LENGTH];
+    uint8_t length;
+    uint8_t raw_bytes[CHAIN_ID_MAX_LENGTH];
 } chain_id_t;
 
 /**

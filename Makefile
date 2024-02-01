@@ -55,8 +55,7 @@ CURVE_APP_LOAD_PARAMS = secp256k1
 # Most application will have to request a path according to the BIP-0044
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
-# `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "3757'/1'"   # purpose=coin(3757) / coin_type=Testnet(1)
+PATH_APP_LOAD_PARAMS = "3757'/0'"   # purpose=coin(3757) / coin_type=Mainnet(0)
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set

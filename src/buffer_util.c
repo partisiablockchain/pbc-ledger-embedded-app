@@ -45,9 +45,9 @@ bool buffer_read_chain_id(buffer_t *buffer, chain_id_t *out) {
         return false;
     }
 
-    if (chain_id_len != CHAIN_ID_LENGTH) {
+    if (chain_id_len > CHAIN_ID_MAX_LENGTH) {
         return false;
     }
-
-    return buffer_read_bytes_precisely(buffer, out->raw_bytes, CHAIN_ID_LENGTH);
+    out->length = (uint8_t) chain_id_len;
+    return buffer_read_bytes_precisely(buffer, out->raw_bytes, chain_id_len);
 }
