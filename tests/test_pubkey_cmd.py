@@ -5,12 +5,12 @@ from application_client.response_unpacker import unpack_get_public_key_response
 from ragger.bip import calculate_public_key_and_chaincode, CurveChoice
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID, NavIns
-from utils import ROOT_SCREENSHOT_PATH
+from utils import ROOT_SCREENSHOT_PATH, KEY_PATH
 
 
 # In this test we check that the GET_PUBLIC_KEY works in non-confirmation mode
 def test_get_public_key_no_confirm(backend):
-    for path in ["m/3757'/0'/0'/0/0", "m/3757'/0'/0/0/0", "m/3757'/0'/910'/0/0", "m/3757'/0'/255/255/255", "m/3757'/0'/2147483647/0/0/0/0/0/0/0"]:
+    for path in [KEY_PATH, "m/3757'/0'/0/0/0", "m/3757'/0'/910'/0/0", "m/3757'/0'/255/255/255", "m/3757'/0'/2147483647/0/0/0/0/0/0/0"]:
         client = PbcCommandSender(backend)
         response = client.get_public_key(path=path).data
         _, public_key, _, chain_code = unpack_get_public_key_response(response)
@@ -24,7 +24,7 @@ def test_get_public_key_no_confirm(backend):
 # In this test we check that the GET_PUBLIC_KEY works in confirmation mode
 def test_get_public_key_confirm_accepted(firmware, backend, navigator, test_name):
     client = PbcCommandSender(backend)
-    path = "m/3757'/0'/0'/0/0"
+    path = KEY_PATH
     with client.get_public_key_with_confirmation(path=path):
         if firmware.device.startswith("nano"):
             navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
@@ -54,7 +54,7 @@ def test_get_public_key_confirm_accepted(firmware, backend, navigator, test_name
 # In this test we check that the GET_PUBLIC_KEY in confirmation mode replies an error if the user refuses
 def test_get_public_key_confirm_refused(firmware, backend, navigator, test_name):
     client = PbcCommandSender(backend)
-    path = "m/3757'/0'/0'/0/0"
+    path = KEY_PATH
 
     if firmware.device.startswith("nano"):
         with pytest.raises(ExceptionRAPDU) as e:

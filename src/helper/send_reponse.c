@@ -43,7 +43,7 @@ int helper_send_response_pubkey() {
 }
 
 int helper_send_response_sig() {
-    uint8_t resp[1 + MAX_DER_SIG_LEN + 1] = {0};
+    uint8_t resp[1 + MAX_TLV_SIGNATURE_LENGTH + 1] = {0};
     size_t offset = 0;
 
     resp[offset++] = G_context.tx_info.signature_len;
