@@ -44,8 +44,10 @@
  * Status word for wrong transaction length.
  */
 #define SW_WRONG_TX_LENGTH 0xB004
-
-#define SW_INVALID_CHAIN_ID                   0xB005
+/**
+ * Status word for an invalid chain id.
+ */
+#define SW_INVALID_CHAIN_ID 0xB005
 /**
  * Status word for fail of transaction parsing.
  */

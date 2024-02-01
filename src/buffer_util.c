@@ -1,5 +1,5 @@
 
-#include <string.h> // memmove
+#include <string.h>  // memmove
 #include "buffer_util.h"
 
 /**
@@ -39,7 +39,7 @@ bool buffer_read_contract_address(buffer_t *buffer, blockchain_address_s *out) {
     return buffer_read_bytes_precisely(buffer, out->raw_bytes, sizeof(out->raw_bytes));
 }
 
-bool buffer_read_chain_id(buffer_t *buffer, chain_id_t* out) {
+bool buffer_read_chain_id(buffer_t *buffer, chain_id_t *out) {
     uint32_t chain_id_len;
     if (!buffer_read_u32(buffer, &chain_id_len, BE)) {
         return false;

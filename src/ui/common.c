@@ -72,9 +72,9 @@ void set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer
 
     // Display token transfer amount
     set_g_token_amount(g_transfer_amount,
-                     sizeof(g_transfer_amount),
-                     "MPC",
-                     mpc_transfer->token_amount);
+                       sizeof(g_transfer_amount),
+                       "MPC",
+                       mpc_transfer->token_amount);
 
     // Display Memo
     if (mpc_transfer->memo_length > 0) {

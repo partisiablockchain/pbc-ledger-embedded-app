@@ -76,7 +76,8 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
     }
     // the second settings page contains 2 toggle setting switches
     else if (page == 1) {
-        switches[BLIND_TRANSACTION_SWITCH_ID].initState = (nbgl_state_t) N_storage.allow_blind_signing;
+        switches[BLIND_TRANSACTION_SWITCH_ID].initState =
+            (nbgl_state_t) N_storage.allow_blind_signing;
         switches[BLIND_TRANSACTION_SWITCH_ID].text = "Blind Signing";
         switches[BLIND_TRANSACTION_SWITCH_ID].subText = "Allow Blind Signing\nin transactions";
         switches[BLIND_TRANSACTION_SWITCH_ID].token = BLIND_TRANSACTION_SWITCH_TOKEN;
@@ -121,7 +122,7 @@ static void controls_callback(int token, uint8_t index) {
                                "Cancel",
                                review_warning_choice);
         } else {
-          review_warning_choice(true);
+            review_warning_choice(true);
         }
     }
 }

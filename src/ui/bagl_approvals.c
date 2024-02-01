@@ -222,9 +222,9 @@ int ui_display_transaction(void) {
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
     set_g_token_amount(g_gas_cost,
-                     sizeof(g_gas_cost),
-                     "Gas",
-                     G_context.tx_info.transaction.basic.gas_cost);
+                       sizeof(g_gas_cost),
+                       "Gas",
+                       G_context.tx_info.transaction.basic.gas_cost);
 
     // Setup UI flow
     if (prevent_approval_due_to_blind_signing) {

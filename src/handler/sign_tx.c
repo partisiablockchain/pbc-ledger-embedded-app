@@ -43,7 +43,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
     // 4. When accepted: Sign and return
 
     // first chunk, parse BIP32 path
-    if (chunk_idx == 0) { // TODO?
+    if (chunk_idx == 0) {  // TODO?
         explicit_bzero(&G_context, sizeof(G_context));
         G_context.req_type = CONFIRM_TRANSACTION;
         G_context.state = STATE_NONE;

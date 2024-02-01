@@ -69,14 +69,14 @@ typedef struct {
  * Short id representing the chain that a transaction is targeting.
  */
 typedef struct {
-  uint8_t raw_bytes[CHAIN_ID_LENGTH];
+    uint8_t raw_bytes[CHAIN_ID_LENGTH];
 } chain_id_t;
 
 /**
  * Basic and common transaction information
  *
-                                            Does not include RPC as these bytes are handled separately.
-
+ * Does not include RPC as these bytes are handled separately.
+ *
  * @see
  * https://partisiablockchain.gitlab.io/documentation/smart-contracts/transaction-binary-format.html
  */

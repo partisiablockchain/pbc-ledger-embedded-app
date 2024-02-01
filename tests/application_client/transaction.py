@@ -90,6 +90,10 @@ class MpcTokenTransfer(Serializable):
     token_amount: int
     memo: Union[None, int, bytes] = None
 
+    SHORTNAME_TRANSFER = (3).to_bytes(1, byteorder='big')
+    SHORTNAME_TRANSFER_WITH_SMALL_MEMO = (13).to_bytes(1, byteorder='big')
+    SHORTNAME_TRANSFER_WITH_LARGE_MEMO = (23).to_bytes(1, byteorder='big')
+
     def __post_init__(self):
         if not isinstance(self.recipient_address, bytes):
             raise TransactionError(f"Bad address: '{self.recipient_address}'!")
@@ -99,13 +103,13 @@ class MpcTokenTransfer(Serializable):
 
     def serialize(self) -> bytes:
         if self.memo is None:
-            shortname = (3).to_bytes(1)
+            shortname = MpcTokenTransfer.SHORTNAME_TRANSFER
             memo = b''
         elif isinstance(self.memo, int):
-            shortname = (13).to_bytes(1)
+            shortname = MpcTokenTransfer.SHORTNAME_TRANSFER_WITH_SMALL_MEMO
             memo = self.memo.to_bytes(8, byteorder='big')
         elif isinstance(self.memo, bytes):
-            shortname = (23).to_bytes(1)
+            shortname = MpcTokenTransfer.SHORTNAME_TRANSFER_WITH_LARGE_MEMO
             memo = b''.join([
                 len(self.memo).to_bytes(4, byteorder='big'),
                 self.memo,
