@@ -114,6 +114,9 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
                                         (uint8_t *) CHAIN_ID_PREFIX,
                                         sizeof(CHAIN_ID_PREFIX));
+        if (status_hashing != CX_OK) {
+            return io_send_sw(SW_TX_HASH_FAIL);
+        }
         status_hashing = cx_hash_update((cx_hash_t *) &G_context.tx_info.digest_state,
                                         G_context.tx_info.chain_id.raw_bytes,
                                         G_context.tx_info.chain_id.length);
