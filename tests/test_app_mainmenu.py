@@ -22,15 +22,25 @@ def test_app_mainmenu(firmware, navigator, test_name):
         ]
     else:
         instructions = [
+            # Enter settings
             NavInsID.USE_CASE_HOME_SETTINGS,
             NavInsID.USE_CASE_SETTINGS_NEXT,
+
+            # Enable blind sign
             NavIns(NavInsID.TOUCH, (200, 113)),
-            NavIns(NavInsID.TOUCH, (200, 261)),
             NavInsID.USE_CASE_CHOICE_CONFIRM,
+
+            # Re-enter settings
             NavInsID.USE_CASE_SETTINGS_NEXT,
-            NavIns(NavInsID.TOUCH, (200, 261)),
-            NavIns(NavInsID.TOUCH, (200, 261)),
+
+            # Disable blind sign
+            NavIns(NavInsID.TOUCH, (200, 113)),
+
+            # Attempt to enable blind sign, but refuse
+            NavIns(NavInsID.TOUCH, (200, 113)),
             NavInsID.USE_CASE_CHOICE_REJECT,
+
+            # Exit menu
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
         ]
     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name, instructions,

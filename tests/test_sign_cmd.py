@@ -5,7 +5,7 @@ from application_client.transaction import Transaction, MpcTokenTransfer, from_h
 from application_client.command_sender import PbcCommandSender, Errors
 from application_client.response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
-from ragger.navigator import NavInsID
+from ragger.navigator import NavInsID, NavIns
 from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_ID
 import transaction_examples
 
@@ -20,10 +20,21 @@ def enable_blind_sign(firmware, navigator):
             NavInsID.RIGHT_CLICK,  # From "blind sign" to "back"
             NavInsID.BOTH_CLICK,  # From "back" to "ready"
         ]
-        navigator.navigate(instructions,
-                           screen_change_before_first_instruction=False)
     else:
-        pass  # TODO
+        instructions = [
+            # Enter settings
+            NavInsID.USE_CASE_HOME_SETTINGS,
+            NavInsID.USE_CASE_SETTINGS_NEXT,
+
+            # Enable blind sign
+            NavIns(NavInsID.TOUCH, (200, 113)),
+            NavInsID.USE_CASE_CHOICE_CONFIRM,
+
+            # Exit menu
+            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+        ]
+    navigator.navigate(instructions,
+                       screen_change_before_first_instruction=False)
 
 
 def move_to_end_and_approve(firmware, navigator, test_name):
@@ -110,7 +121,7 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
     rapdu = client.get_public_key(path=KEY_PATH)
     _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)
 
-    transaction_bytes = transaction_examples.TRANSACTION_GENERIC_CONTRACT.serialize(
+    transaction_bytes = transaction_examples.TRANSACTION_MPC_TRANSFER.serialize(
     )
 
     if firmware.device.startswith("nano"):

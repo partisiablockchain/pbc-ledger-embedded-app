@@ -81,7 +81,7 @@ static void review_blind_transaction(void) {
     pairList.pairs = pairs;
 
     // Info long press
-    infoLongPress.icon = &C_app_pbc_64px;
+    infoLongPress.icon = &C_round_warning_64px;
     infoLongPress.text = "Sign blind transaction to interact with PBC contract?";
     infoLongPress.longPressText = "Hold to sign";
 
@@ -128,8 +128,6 @@ int ui_display_transaction() {
                        "Gas",
                        G_context.tx_info.transaction.basic.gas_cost);
 
-    // TODO: bool prevent_approval_due_to_blind_signing = false;
-
     // Either setup clear-sign flows or blind-sign flows.
     if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
         // MPC Transfer
@@ -142,6 +140,17 @@ int ui_display_transaction() {
                                 "Reject transaction",
                                 review_mpc_transfer,
                                 ask_transaction_rejection_confirmation);
+    } else if (!N_storage.allow_blind_signing) {
+        // Blind sign warning when disabled
+
+        // TODO: Feels pretty hacky?
+        nbgl_useCaseConfirm("Review Blind PBC transaction",
+                            "Blind signing is disabled, due to security reason. Enabled it from "
+                            "the settings menu before attempting again.",
+                            "Yes, Reject",
+                            "Yes, Reject",
+                            confirm_transaction_rejection);
+
     } else {
         // Blind sign
 
@@ -151,12 +160,13 @@ int ui_display_transaction() {
         }
 
         // TODO: Blind signing warning
-        nbgl_useCaseReviewStart(&C_app_pbc_64px,
-                                "Review blind PBC transaction",
-                                NULL,
-                                "Reject transaction",
-                                review_blind_transaction,
-                                ask_transaction_rejection_confirmation);
+        nbgl_useCaseReviewStart(
+            &C_app_pbc_64px,
+            "Review Blind PBC transaction",
+            "This transaction cannot be securely interpreted. It might put your assets at risk.",
+            "Reject transaction",
+            review_blind_transaction,
+            ask_transaction_rejection_confirmation);
     }
 
     // Start review

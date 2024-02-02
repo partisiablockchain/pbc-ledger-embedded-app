@@ -93,15 +93,17 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
     return true;
 }
 
-// callback for setting warning choice
+/** Utility for setting whether blind signing is allowed. */
+static void set_blind_signing(uint8_t allow) {
+    // Store the new value
+    nvm_write((void*) &N_storage.allow_blind_signing, &allow, 1);
+}
+
+/** callback for setting warning choice. */
 static void review_warning_choice(bool confirm) {
     if (confirm) {
-        // toggle the switch value
-        uint8_t switch_value = !N_storage.allow_blind_signing;
-        // store the new setting value in NVM
-        nvm_write((void*) &N_storage.allow_blind_signing, &switch_value, 1);
+        set_blind_signing(1);
     }
-
     // return to the settings menu
     ui_menu_settings();
 }
@@ -122,7 +124,7 @@ static void controls_callback(int token, uint8_t index) {
                                "Cancel",
                                review_warning_choice);
         } else {
-            review_warning_choice(true);
+            set_blind_signing(0);
         }
     }
 }
