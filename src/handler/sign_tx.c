@@ -43,7 +43,7 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
     // 4. When accepted: Sign and return
 
     // first chunk, parse BIP32 path
-    if (chunk_idx == 0) {  // TODO?
+    if (chunk_idx == 0) {
         explicit_bzero(&G_context, sizeof(G_context));
         G_context.req_type = CONFIRM_TRANSACTION;
         G_context.state = STATE_NONE;
@@ -84,7 +84,6 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
             transaction_parser_update(&G_context.tx_info.transaction_parser_state,
                                       chunk_data,
                                       &G_context.tx_info.transaction);
-        PRINTF("Parsing status: %d.\n", status_parsing);
 
         if (status_parsing < 0) {
             return io_send_sw(SW_TX_PARSING_FAIL | -status_parsing);
@@ -98,7 +97,6 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
                                                  chunk_data->ptr,
                                                  chunk_data->size);
 
-        PRINTF("Digest status: %d.\n", status_hashing);
         if (status_hashing != CX_OK) {
             return io_send_sw(SW_TX_HASH_FAIL);
         }
@@ -129,8 +127,6 @@ int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks
         if (status_hashing != CX_OK) {
             return io_send_sw(SW_TX_HASH_FAIL);
         }
-
-        PRINTF("Hash: %.*H\n", sizeof(G_context.tx_info.m_hash), G_context.tx_info.m_hash);
 
         // We finally have enough information to display UI.
         return ui_display_transaction();

@@ -14,7 +14,7 @@ char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 // Text buffer for MPC transfer recipient or contract address
 char g_address[2 * ADDRESS_LEN + 1];
 // Text buffer for MPC transfer memo
-char g_memo[MEMO_MAX_LENGTH + 1];  // TODO
+char g_memo[MEMO_MAX_LENGTH + 1];
 
 /**
  * Formats a blockchain_address_s as a hex string.

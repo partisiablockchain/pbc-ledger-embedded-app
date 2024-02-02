@@ -4,7 +4,7 @@
 
 Ledger Application for interacting with Partisia Blockchain.
 
-Based on [Ledger app-builerplate](https://github.com/LedgerHQ/app-boilerplate),
+Based on [Ledger app-boilerplate](https://github.com/LedgerHQ/app-boilerplate),
 commit `7d1c3c39d8c7d3567c5a6650fe339a8e5160b497`.
 
 ## Quick start guide
