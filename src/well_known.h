@@ -23,7 +23,7 @@
                                           0xae, 0xe2, 0xc2, 0xcb, 0x25, 0xd8, 0x81}})
 
 /** Byte shortname of the MPC transfer invocation. */
-#define MPC_TOKEN_SHORTNAME_TRANSFER            3
+#define MPC_TOKEN_SHORTNAME_TRANSFER 3
 /** Byte shortname of the MPC transfer with small memo invocation. */
 #define MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL 13
 /** Byte shortname of the MPC transfer with large memo invocation. */

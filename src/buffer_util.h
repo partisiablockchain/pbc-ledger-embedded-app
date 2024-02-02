@@ -2,7 +2,7 @@
 
 #include "buffer.h"
 
-#include "types.h"
+#include "transaction/types.h"
 
 /**
  * Reads as many bytes as possible from the buffer, but at most out_len.

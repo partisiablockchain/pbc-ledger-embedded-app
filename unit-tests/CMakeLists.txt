@@ -51,10 +51,12 @@ add_library(varint SHARED $ENV{BOLOS_SDK}/lib_standard_app/varint.c)
 add_library(apdu_parser SHARED $ENV{BOLOS_SDK}/lib_standard_app/parser.c)
 add_library(transaction_deserialize ../src/transaction/deserialize.c)
 add_library(address ../src/address.c)
+add_library(buffer_util ../src/buffer_util.c)
 
 target_link_libraries(test_tx_parser PUBLIC
                       transaction_deserialize
                       buffer
+                      buffer_util
                       bip32
                       cmocka
                       gcov
