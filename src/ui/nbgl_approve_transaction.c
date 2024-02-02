@@ -81,7 +81,7 @@ static void review_blind_transaction(void) {
     pairList.pairs = pairs;
 
     // Info long press
-    infoLongPress.icon = &C_app_boilerplate_64px;
+    infoLongPress.icon = &C_app_pbc_64px;
     infoLongPress.text = "Sign blind transaction to interact with PBC contract?";
     infoLongPress.longPressText = "Hold to sign";
 
@@ -105,7 +105,7 @@ static void review_mpc_transfer(void) {
     pairList.pairs = pairs;
 
     // Info long press
-    infoLongPress.icon = &C_app_boilerplate_64px;
+    infoLongPress.icon = &C_app_pbc_64px;
     infoLongPress.text = "Sign transaction\nto send MPC";
     infoLongPress.longPressText = "Hold to sign";
 
@@ -136,7 +136,7 @@ int ui_display_transaction() {
 
         set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
 
-        nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
+        nbgl_useCaseReviewStart(&C_app_pbc_64px,
                                 "Review transaction to send MPC",
                                 NULL,
                                 "Reject transaction",
@@ -151,7 +151,7 @@ int ui_display_transaction() {
         }
 
         // TODO: Blind signing warning
-        nbgl_useCaseReviewStart(&C_app_boilerplate_64px,
+        nbgl_useCaseReviewStart(&C_app_pbc_64px,
                                 "Review blind PBC transaction",
                                 NULL,
                                 "Reject transaction",

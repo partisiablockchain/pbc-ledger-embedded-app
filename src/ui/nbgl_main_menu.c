@@ -43,7 +43,7 @@ void ui_menu_main(void) {
 #define SETTINGS_BUTTON_ENABLED (true)
 
     nbgl_useCaseHome(APPNAME,
-                     &C_app_boilerplate_64px,
+                     &C_app_pbc_64px,
                      NULL,
                      SETTINGS_BUTTON_ENABLED,
                      ui_menu_settings,
