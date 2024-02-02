@@ -2,8 +2,7 @@
 
 #include "address.h"
 
-/**
- * This file contains various well known contract addresses to enable special
+/*! \file This file contains various well known contract addresses to enable special
  * handling of these contracts. Most of them are governance contracts.
  *
  * @see documentation:
@@ -23,6 +22,9 @@
                                           0x49, 0xec, 0xd0, 0xff, 0xa1, 0xdc, 0xaa, \
                                           0xae, 0xe2, 0xc2, 0xcb, 0x25, 0xd8, 0x81}})
 
+/** Byte shortname of the MPC transfer invocation. */
 #define MPC_TOKEN_SHORTNAME_TRANSFER            3
+/** Byte shortname of the MPC transfer with small memo invocation. */
 #define MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL 13
+/** Byte shortname of the MPC transfer with large memo invocation. */
 #define MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE 23

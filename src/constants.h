@@ -26,9 +26,11 @@
 #define MAX_TRANSACTION_LEN 510
 
 /**
- * Maximum signature length (bytes) of the TLV (Type-length-value) signature.
+ * Maximum length (bytes) of the BIP66 DER TLV (Type-length-value) signature.
+ *
+ * @see https://bips.dev/66/
  */
-#define MAX_TLV_SIGNATURE_LENGTH 72
+#define MAX_BIP66_DER_SIGNATURE_LENGTH 72
 
 /**
  * Exponent used to convert mBOL to BOL unit (N BOL = N * 10^3 mBOL).

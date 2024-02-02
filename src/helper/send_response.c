@@ -34,7 +34,6 @@ int helper_send_response_pubkey() {
     memmove(resp + offset, G_context.pk_info.raw_public_key, PUBKEY_LEN);
     offset += PUBKEY_LEN;
 
-    // TODO: remove this chaincode stuff?
     resp[offset++] = CHAINCODE_LEN;
     memmove(resp + offset, G_context.pk_info.chain_code, CHAINCODE_LEN);
     offset += CHAINCODE_LEN;
@@ -43,7 +42,7 @@ int helper_send_response_pubkey() {
 }
 
 int helper_send_response_sig() {
-    uint8_t resp[1 + MAX_TLV_SIGNATURE_LENGTH + 1] = {0};
+    uint8_t resp[1 + MAX_BIP66_DER_SIGNATURE_LENGTH + 1] = {0};
     size_t offset = 0;
 
     resp[offset++] = G_context.tx_info.signature_len;
