@@ -61,8 +61,14 @@ bool set_g_token_amount(char* out,
                         uint8_t decimals) {
     memset(out, 0, out_size);
     char number_buffer[30] = {0};
-    if (!format_fpu64(number_buffer, sizeof(number_buffer), amount, decimals)) {
-        return false;
+    if (decimals == 0) {
+        if (!format_u64(number_buffer, sizeof(number_buffer), amount)) {
+            return false;
+        }
+    } else {
+        if (!format_fpu64(number_buffer, sizeof(number_buffer), amount, decimals)) {
+            return false;
+        }
     }
     snprintf(out, out_size, "%.*s %s", sizeof(number_buffer), number_buffer, suffix);
 

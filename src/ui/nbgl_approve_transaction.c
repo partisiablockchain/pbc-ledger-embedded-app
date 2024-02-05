@@ -123,7 +123,7 @@ int ui_display_transaction() {
     }
 
     // Update gas cost
-    if (set_g_token_amount(g_gas_cost,
+    if (!set_g_token_amount(g_gas_cost,
                            sizeof(g_gas_cost),
                            "Gas",
                            G_context.tx_info.transaction.basic.gas_cost,

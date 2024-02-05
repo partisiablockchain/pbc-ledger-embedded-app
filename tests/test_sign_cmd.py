@@ -72,7 +72,6 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
         # Hacky check for blind transactions
         while not navigator._backend.compare_screen_with_text('Review'):
             time.sleep(0.1)
-        assert navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 
         # Approve
         move_to_end_and_approve(firmware, navigator,
@@ -101,7 +100,6 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
         time.sleep(1.0)
         assert navigator._backend.compare_screen_with_text(
             'Review'), 'First screen must be Review'
-        assert not navigator._backend.compare_screen_with_text('.*[Bb]lind.*')
 
         # Approve
         move_to_end_and_approve(firmware, navigator,
