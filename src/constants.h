@@ -31,8 +31,3 @@
  * @see https://bips.dev/66/
  */
 #define MAX_BIP66_DER_SIGNATURE_LENGTH 72
-
-/**
- * Exponent used to convert mBOL to BOL unit (N BOL = N * 10^3 mBOL).
- */
-#define EXPONENT_SMALLEST_UNIT 3

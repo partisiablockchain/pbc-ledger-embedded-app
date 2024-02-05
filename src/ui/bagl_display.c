@@ -195,7 +195,9 @@ int ui_display_transaction(void) {
         // Display recipient
         snprintf(g_address_title, sizeof(g_address_title), "Recipient");
 
-        set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer);
+        if (!set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer)) {
+            return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
+        }
 
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
 
@@ -221,10 +223,13 @@ int ui_display_transaction(void) {
 
     // Display gas cost
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
-    set_g_token_amount(g_gas_cost,
-                       sizeof(g_gas_cost),
-                       "Gas",
-                       G_context.tx_info.transaction.basic.gas_cost);
+    if (set_g_token_amount(g_gas_cost,
+                           sizeof(g_gas_cost),
+                           "Gas",
+                           G_context.tx_info.transaction.basic.gas_cost,
+                           0)) {
+        return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
+    }
 
     // Setup UI flow
     if (prevent_approval_due_to_blind_signing) {

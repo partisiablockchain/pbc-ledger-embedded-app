@@ -23,19 +23,26 @@ extern char g_memo[MEMO_MAX_LENGTH + 1];
 
 /**
  * Replaces the displayed address with the given address.
+ *
+ * @return false when field failed to be displayed.
  */
 bool set_g_address(blockchain_address_s* address);
 
 /**
  * Replaces the displayed token amount with the given amount with a suffix.
+ *
+ * @return false when field failed to be displayed.
  */
-void set_g_token_amount(char* out,
+bool set_g_token_amount(char* out,
                         size_t out_size,
                         const char suffix[const TOKEN_SUFFIX_LEN + 1],
-                        uint64_t amount);
+                        uint64_t amount,
+                        uint8_t decimals);
 
 /**
  * Replaces the fields for displaying an MPC transfer with the values from the
  * given MPC transfer.
+ *
+ * @return false when any field failed to be displayed.
  */
-void set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer);
+bool set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer);

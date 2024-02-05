@@ -59,7 +59,7 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         }
 
         // MPC Amount
-        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE);
+        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE);
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
         tx->type = MPC_TRANSFER;
@@ -71,7 +71,7 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         }
 
         // MPC Amount
-        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE)) {
             return false;
         }
 
@@ -92,7 +92,7 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         }
 
         // MPC Amount
-        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount, BE)) {
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE)) {
             return false;
         }
 

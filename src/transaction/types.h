@@ -20,6 +20,13 @@
 #define MEMO_MAX_LENGTH 20
 
 /**
+ * The number of decimals used when formatting MPC values. MPC values are
+ * stored as unsigned integers of the smallest transferrable amount of MPC
+ * tokens.
+ */
+#define MPC_TOKEN_DECIMALS 4
+
+/**
  * Stores the state of the parser.
  *
  * The transaction parser is capable of parsing a streaming manner.
@@ -72,8 +79,13 @@ typedef enum {
 typedef struct {
     /** Recipient of the MPC tokens. */
     blockchain_address_s recipient_address;
-    /** Amount of MPC tokens sent. */
-    uint64_t token_amount;
+    /** Amount of MPC tokens sent. MPC values are
+     * stored as unsigned integers of the smallest transferrable amount of MPC
+     * tokens, and must be divided by 10000 when represented.
+     *
+     * @see MPC_TOKEN_DECIMALS
+     */
+    uint64_t token_amount_10000ths;
     /** Length of associated memo. */
     uint8_t memo_length;
     /** Tag for which memo field is relevant. */
