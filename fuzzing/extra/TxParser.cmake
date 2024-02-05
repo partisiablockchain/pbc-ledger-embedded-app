@@ -20,6 +20,7 @@ add_library(txparser
     ${BOLOS_SDK}/lib_standard_app/write.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/transaction/deserialize.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/buffer_util.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/address.c
 )
 
 set_target_properties(txparser PROPERTIES SOVERSION 1)
