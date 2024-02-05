@@ -40,12 +40,20 @@ bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
         return false;
     }
 
-    return cx_hash_no_throw((cx_hash_t *) &digest,
+    uint8_t hashed[CX_SHA256_SIZE];
+
+    if (cx_hash_no_throw((cx_hash_t *) &digest,
                             CX_LAST,
-                            public_key + 1,
-                            64,
-                            out->raw_bytes + 1,
-                            IDENTIFIER_LEN) != CX_OK;
+                            public_key,
+                            65,
+                            hashed,
+                            sizeof(hashed)) != CX_OK) {
+        return false;
+    }
+
+    memcpy(&out->raw_bytes[1], hashed + 12, 20);
+
+    return true;
 }
 #endif
 
