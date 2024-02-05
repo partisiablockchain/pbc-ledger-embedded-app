@@ -143,7 +143,6 @@ int ui_display_transaction() {
     } else if (!N_storage.allow_blind_signing) {
         // Blind sign warning when disabled
 
-        // TODO: Feels pretty hacky?
         nbgl_useCaseConfirm("Review Blind PBC transaction",
                             "Blind signing is disabled, due to security reason. Enabled it from "
                             "the settings menu before attempting again.",
@@ -159,7 +158,6 @@ int ui_display_transaction() {
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
         }
 
-        // TODO: Blind signing warning
         nbgl_useCaseReviewStart(
             &C_app_pbc_64px,
             "Review Blind PBC transaction",

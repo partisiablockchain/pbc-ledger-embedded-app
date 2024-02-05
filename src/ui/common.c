@@ -41,7 +41,6 @@ static void replace_unreadable(char* str, size_t str_len) {
  * Sets the memo text.
  */
 static void set_g_memo_text(uint8_t* text, size_t text_len) {
-    // TODO: Return error if not fully written
     size_t g_memo_len = sizeof(g_memo);
     size_t copy_amount = text_len < g_memo_len ? text_len : g_memo_len;
 
@@ -59,7 +58,6 @@ void set_g_token_amount(char* out,
                         size_t out_size,
                         const char suffix[const TOKEN_SUFFIX_LEN + 1],
                         uint64_t amount) {
-    // TODO: Return error if amount is not fully written
     char number_buffer[PRIu64_MAX_LENGTH + 1];
     memset(number_buffer, 0, sizeof(number_buffer));
     format_u64(number_buffer, sizeof(number_buffer), amount);

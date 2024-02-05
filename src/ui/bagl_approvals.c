@@ -204,7 +204,7 @@ int ui_display_transaction(void) {
 
     } else {
         // Blind sign
-        snprintf(g_review_text, sizeof(g_review_text), "Blind Transaction");
+        snprintf(g_review_text, sizeof(g_review_text), "Transaction");
 
         // Warning
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_blind_sign_warning;

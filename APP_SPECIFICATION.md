@@ -2,6 +2,8 @@
 
 ## About
 
+**WARNING: This documentation has not be updated for Partisia Blockchain App.**
+
 This documentation describes the APDU messages interface to communicate with the PBC application.
 
 The application covers the following functionalities :
@@ -52,8 +54,6 @@ The address can be optionally checked on the device before being returned.
 
 
 ### SIGN PBC TRANSACTION
-
-TODO
 
 #### Description
 
