@@ -1,7 +1,7 @@
 # project information
 project(TxParser
         VERSION 1.0
-        DESCRIPTION "Transaction parser of Boilerplate app"
+        DESCRIPTION "Transaction parser of Partisia Blockchain App"
         LANGUAGES C)
 
 # specify C standard
@@ -19,6 +19,7 @@ add_library(txparser
     ${BOLOS_SDK}/lib_standard_app/bip32.c
     ${BOLOS_SDK}/lib_standard_app/write.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/transaction/deserialize.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/buffer_util.c
 )
 
 set_target_properties(txparser PROPERTIES SOVERSION 1)

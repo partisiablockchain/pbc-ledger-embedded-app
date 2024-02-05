@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * Instruction class of the Boilerplate application.
+ * Instruction class used by the Partisia Blockchain App.
  */
 #define CLA 0xE0
 
