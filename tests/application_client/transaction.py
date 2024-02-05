@@ -3,9 +3,9 @@ import dataclasses
 from abc import ABC, abstractmethod
 from typing import Union
 
-from ecdsa.curves import SECP256k1
-from ecdsa.keys import VerifyingKey
-import ecdsa.util
+from ecdsa.curves import SECP256k1 # type: ignore
+from ecdsa.keys import VerifyingKey # type: ignore
+import ecdsa.util # type: ignore
 
 UINT64_MAX: int = 2**64 - 1
 

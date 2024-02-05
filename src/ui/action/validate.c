@@ -51,7 +51,7 @@ static int crypto_sign_message(void) {
         return -1;
     }
 
-    G_context.tx_info.signature.recovery_id = (uint8_t) (info & CX_ECCINFO_PARITY_ODD);
+    G_context.tx_info.signature.recovery_id = info & (uint8_t) CX_ECCINFO_PARITY_ODD;
 
     return 0;
 }

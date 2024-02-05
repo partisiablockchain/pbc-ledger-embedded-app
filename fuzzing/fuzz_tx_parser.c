@@ -4,7 +4,6 @@
 #include <sys/types.h>
 
 #include "transaction/deserialize.h"
-#include "transaction/utils.h"
 #include "transaction/types.h"
 #include "format.h"
 
@@ -12,24 +11,30 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     buffer_t buf = {.ptr = data, .size = size, .offset = 0};
     transaction_t tx;
     parser_status_e status;
+
     char nonce[21] = {0};
-    char address[21] = {0};
-    char amount[21] = {0};
-    char tx_memo[466] = {0};
+    char contract[ADDRESS_LEN * 2 + 1] = {0};
+    char gas_cost[21] = {0};
+    char valid_to_time[21] = {0};
 
     memset(&tx, 0, sizeof(tx));
 
-    status = transaction_deserialize(&buf, &tx);
+    transaction_parsing_state_t state;
+    transaction_parser_init(&state);
+    status = transaction_parser_update(&state, &buf, &tx);
 
-    if (status == PARSING_OK) {
-        format_u64(nonce, sizeof(nonce), tx.nonce);
+    if (status == PARSING_DONE || status == PARSING_CONTINUE) {
+        format_u64(nonce, sizeof(nonce), tx.basic.nonce);
         printf("nonce: %s\n", nonce);
-        format_hex(tx.to, ADDRESS_LEN, address, sizeof(address));
-        printf("address: %s\n", address);
-        format_fpu64(amount, sizeof(amount), tx.value, 3);  // exponent of smallest unit is 3
-        printf("amount: %s\n", amount);
-        transaction_utils_format_memo(tx.memo, tx.memo_len, tx_memo, sizeof(tx_memo));
-        printf("memo: %s\n", tx_memo);
+
+        format_hex(tx.basic.contract_address.raw_bytes, ADDRESS_LEN, contract, sizeof(contract));
+        printf("contract: %s\n", contract);
+
+        format_u64(gas_cost, sizeof(gas_cost), tx.basic.gas_cost);
+        printf("gas_cost: %s\n", gas_cost);
+
+        format_u64(valid_to_time, sizeof(valid_to_time), tx.basic.gas_cost);
+        printf("valid_to_time: %s\n", valid_to_time);
     }
 
     return 0;
