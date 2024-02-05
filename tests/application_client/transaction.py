@@ -21,12 +21,15 @@ def from_hex(hex_addr: str) -> bytes:
     return bytes.fromhex(hex_addr[2:].replace("_", ''))
 
 
+# pylint: disable=too-few-public-methods
 class Serializable(ABC):
+    '''
+    A serializable transaction object.
+    '''
 
     @abstractmethod
     def serialize(self) -> bytes:
         pass
-
 
 @dataclasses.dataclass(frozen=True)
 class Transaction(Serializable):
@@ -86,6 +89,10 @@ class Transaction(Serializable):
 
 @dataclasses.dataclass(frozen=True)
 class MpcTokenTransfer(Serializable):
+    '''
+    MPC token transfer from the sender of the transaction to the given
+    recipient.
+    '''
     recipient_address: bytes
     token_amount: int
     memo: Union[None, int, bytes] = None

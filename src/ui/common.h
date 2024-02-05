@@ -26,6 +26,7 @@ extern char g_memo[MEMO_MAX_LENGTH + 1];
  *
  * @return false when field failed to be displayed.
  */
+WARN_UNUSED_RESULT
 bool set_g_address(blockchain_address_s* address);
 
 /**
@@ -33,6 +34,7 @@ bool set_g_address(blockchain_address_s* address);
  *
  * @return false when field failed to be displayed.
  */
+WARN_UNUSED_RESULT
 bool set_g_token_amount(char* out,
                         size_t out_size,
                         const char suffix[const TOKEN_SUFFIX_LEN + 1],
@@ -45,4 +47,5 @@ bool set_g_token_amount(char* out,
  *
  * @return false when any field failed to be displayed.
  */
+WARN_UNUSED_RESULT
 bool set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer);

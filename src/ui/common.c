@@ -49,11 +49,13 @@ static void set_g_memo_text(uint8_t* text, size_t text_len) {
     g_memo[copy_amount - 1] = 0;
 }
 
+WARN_UNUSED_RESULT
 bool set_g_address(blockchain_address_s* address) {
     memset(g_address, 0, sizeof(g_address));
     return blockchain_address_format(address, g_address, sizeof(g_address));
 }
 
+WARN_UNUSED_RESULT
 bool set_g_token_amount(char* out,
                         size_t out_size,
                         const char suffix[const TOKEN_SUFFIX_LEN + 1],
@@ -70,11 +72,12 @@ bool set_g_token_amount(char* out,
             return false;
         }
     }
-    snprintf(out, out_size, "%.*s %s", sizeof(number_buffer), number_buffer, suffix);
 
-    return true;
+    int num_written_chars = snprintf(out, out_size, "%s %s", number_buffer, suffix);
+    return 0 <= num_written_chars && (size_t) num_written_chars < out_size;
 }
 
+WARN_UNUSED_RESULT
 bool set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer) {
     // Display recipient
     if (!set_g_address(&mpc_transfer->recipient_address)) {
