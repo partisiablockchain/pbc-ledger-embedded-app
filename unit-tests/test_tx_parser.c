@@ -292,7 +292,7 @@ static void test_tx_serialization_mpc_token_transfer(void **state) {
     assert_memory_equal(tx.basic.contract_address.raw_bytes, ADDRESS_MPC_TOKEN, 21);
     assert_int_equal(tx.type, MPC_TRANSFER);
     assert_memory_equal(tx.mpc_transfer.recipient_address.raw_bytes, ADDRESS_RECIPIENT, 21);
-    assert_int_equal(tx.mpc_transfer.token_amount, 0x333);
+    assert_int_equal(tx.mpc_transfer.token_amount_10000ths, 0x333);
     assert_int_equal(tx.mpc_transfer.memo_length, 0);
 }
 
