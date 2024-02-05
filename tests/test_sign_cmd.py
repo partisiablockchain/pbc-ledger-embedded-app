@@ -78,8 +78,8 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
                                 '{}-{}'.format(test_name, transaction_name))
 
     response = client.get_async_response().data
-    _, der_sig, _ = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, der_sig, CHAIN_ID)
+    rs_signature = unpack_sign_tx_response(response)
+    assert transaction.verify_signature(public_key, rs_signature, CHAIN_ID)
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
@@ -106,8 +106,8 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
                                 '{}-{}'.format(test_name, transaction_name))
 
     response = client.get_async_response().data
-    _, der_sig, _ = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, der_sig, CHAIN_ID)
+    rs_signature = unpack_sign_tx_response(response)
+    assert transaction.verify_signature(public_key, rs_signature, CHAIN_ID)
 
 
 # Transaction signature refused test

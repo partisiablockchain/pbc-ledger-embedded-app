@@ -24,10 +24,3 @@
  * Maximum transaction length (bytes).
  */
 #define MAX_TRANSACTION_LEN 510
-
-/**
- * Maximum length (bytes) of the BIP66 DER TLV (Type-length-value) signature.
- *
- * @see https://bips.dev/66/
- */
-#define MAX_BIP66_DER_SIGNATURE_LENGTH 72

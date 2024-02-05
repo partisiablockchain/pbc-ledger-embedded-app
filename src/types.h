@@ -56,6 +56,26 @@ typedef struct {
 } pubkey_ctx_t;
 
 /**
+ * Structure for the format of a ECDSA signature with recovery id.
+ */
+typedef struct {
+    /**
+     * R value of signature.
+     */
+    uint8_t r[32];
+    /**
+     * S value of signature.
+     */
+    uint8_t s[32];
+    /**
+     * Recovery id of signature.
+     *
+     * Parity of y-coordinate of R in ECDSA signature.
+     */
+    uint8_t recovery_id;
+} ecdsa_signature_t;
+
+/**
  * Structure for transaction information context.
  */
 typedef struct {
@@ -69,15 +89,8 @@ typedef struct {
     cx_sha256_t digest_state;
     /** Message hash digest. */
     uint8_t m_hash[CX_SHA256_SIZE];
-    /** Transaction signature encoded in BIP66 DER.
-     *
-     * @see https://bips.dev/66/
-     */
-    uint8_t signature[MAX_BIP66_DER_SIGNATURE_LENGTH];
-    /** Length of transaction signature. */
-    uint8_t signature_len;
-    /** Parity of y-coordinate of R in ECDSA signature. */
-    uint8_t v;
+    /** Transaction signature. */
+    ecdsa_signature_t signature;
 } transaction_ctx_t;
 
 /**

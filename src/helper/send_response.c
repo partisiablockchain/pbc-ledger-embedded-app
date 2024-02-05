@@ -41,14 +41,13 @@ int helper_send_response_pubkey() {
     return io_send_response_pointer(resp, offset, SW_OK);
 }
 
-int helper_send_response_sig() {
-    uint8_t resp[1 + MAX_BIP66_DER_SIGNATURE_LENGTH + 1] = {0};
-    size_t offset = 0;
+int helper_send_response_sig(void) {
+    // Serialize signature
+    uint8_t signature_bytes[32 + 32 + 1] = {0};
+    signature_bytes[0] = G_context.tx_info.signature.recovery_id;
+    memmove(&signature_bytes[1], G_context.tx_info.signature.r, 32);
+    memmove(&signature_bytes[33], G_context.tx_info.signature.s, 32);
 
-    resp[offset++] = G_context.tx_info.signature_len;
-    memmove(resp + offset, G_context.tx_info.signature, G_context.tx_info.signature_len);
-    offset += G_context.tx_info.signature_len;
-    resp[offset++] = (uint8_t) G_context.tx_info.v;
-
-    return io_send_response_pointer(resp, offset, SW_OK);
+    // Send signature
+    return io_send_response_pointer(signature_bytes, sizeof(signature_bytes), SW_OK);
 }

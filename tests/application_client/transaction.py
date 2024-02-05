@@ -5,7 +5,7 @@ from typing import Union
 
 from ecdsa.curves import SECP256k1
 from ecdsa.keys import VerifyingKey
-from ecdsa.util import sigdecode_der
+import ecdsa.util
 
 UINT64_MAX: int = 2**64 - 1
 
@@ -30,6 +30,34 @@ class Serializable(ABC):
     @abstractmethod
     def serialize(self) -> bytes:
         pass
+
+
+@dataclasses.dataclass(frozen=True)
+class Signature(Serializable):
+    recovery_id: int
+    r: bytes
+    s: bytes
+
+    def __post_init__(self):
+        assert 0 <= self.recovery_id < 4
+        assert len(self.r) == 32
+        assert len(self.s) == 32
+
+    @staticmethod
+    def deserialize(bts: bytes) -> 'Signature':
+        return Signature(
+            bts[0],
+            bts[1:1 + 32],
+            bts[1 + 32:1 + 32 + 32],
+        )
+
+    def serialize(self) -> bytes:
+        return b''.join([
+            self.recovery_id.to_bytes(1, byteorder='big'),
+            self.r,
+            self.s,
+        ])
+
 
 @dataclasses.dataclass(frozen=True)
 class Transaction(Serializable):
@@ -69,9 +97,9 @@ class Transaction(Serializable):
             rpc,
         ])
 
-    def verify_signature(self, public_key: bytes, signature: bytes,
+    def verify_signature(self, public_key: bytes, signature: Signature,
                          chain_id: bytes):
-        bytes_to_sign = b''.join([
+        bytes_to_verify = b''.join([
             self.serialize(),
             len(chain_id).to_bytes(4, byteorder="big"),
             chain_id,
@@ -81,10 +109,10 @@ class Transaction(Serializable):
                                                     curve=SECP256k1,
                                                     hashfunc=sha256)
 
-        return pk.verify(signature=signature,
-                         data=bytes_to_sign,
+        return pk.verify(signature=signature.r + signature.s,
+                         data=bytes_to_verify,
                          hashfunc=sha256,
-                         sigdecode=sigdecode_der)
+                         sigdecode=ecdsa.util.sigdecode_string)
 
 
 @dataclasses.dataclass(frozen=True)
