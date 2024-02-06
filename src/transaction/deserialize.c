@@ -32,7 +32,9 @@
 #endif
 
 void transaction_parser_init(transaction_parsing_state_t *state) {
-    explicit_bzero(state, sizeof(*state));
+    state->rpc_bytes_total = 0;
+    state->rpc_bytes_parsed = 0;
+    state->first_block_parsed = false;
 }
 
 /**
