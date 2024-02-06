@@ -44,11 +44,11 @@ static uint32_t min(uint32_t a, uint32_t b) {
     return a < b ? a : b;
 }
 
-static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
+static parser_status_e parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
     // Read shortname
     uint8_t shortname;
     if (!buffer_read_u8(chunk, &shortname)) {
-        return false;
+        return PARSING_FAILED_SHORTNAME;
     }
 
     if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER) {
@@ -57,11 +57,15 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
 
         // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
-            return false;
+            return PARSING_FAILED_MPC_RECIPIENT;
         }
 
         // MPC Amount
-        return buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE);
+        if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE)) {
+            return PARSING_FAILED_MPC_TOKEN_AMOUNT;
+        }
+
+        return PARSING_DONE;
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_SMALL) {
         tx->type = MPC_TRANSFER;
@@ -69,44 +73,44 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
 
         // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
-            return false;
+            return PARSING_FAILED_MPC_RECIPIENT;
         }
 
         // MPC Amount
         if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE)) {
-            return false;
+            return PARSING_FAILED_MPC_TOKEN_AMOUNT;
         }
 
         // Short memo (u64)
         if (!buffer_read_u64(chunk, &tx->mpc_transfer.memo_u64, BE)) {
-            return false;
+            return PARSING_FAILED_MPC_MEMO;
         }
         tx->mpc_transfer.has_u64_memo = true;
 
-        return true;
+        return PARSING_DONE;
 
     } else if (shortname == MPC_TOKEN_SHORTNAME_TRANSFER_MEMO_LARGE) {
         tx->type = MPC_TRANSFER;
 
         // Recipient
         if (!buffer_read_contract_address(chunk, &tx->mpc_transfer.recipient_address)) {
-            return false;
+            return PARSING_FAILED_MPC_RECIPIENT;
         }
 
         // MPC Amount
         if (!buffer_read_u64(chunk, &tx->mpc_transfer.token_amount_10000ths, BE)) {
-            return false;
+            return PARSING_FAILED_MPC_TOKEN_AMOUNT;
         }
 
         // Read memo length
         uint32_t memo_length;
         if (!buffer_read_u32(chunk, &memo_length, BE)) {
-            return false;
+            return PARSING_FAILED_MPC_MEMO;
         }
 
         // Check that the memo can be read into the buffer
         if (memo_length > sizeof(tx->mpc_transfer.memo)) {
-            return false;
+            return PARSING_FAILED_MPC_MEMO;
         }
 
         // Read long memo
@@ -115,16 +119,16 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
         // Check that the entire memo was read, and not just a part (such that
         // the rest of the memo is on the next chunk.)
         if (read_bytes < memo_length) {
-            return false;
+            return PARSING_FAILED_MPC_MEMO;
         }
 
         tx->mpc_transfer.memo_length = memo_length;
         tx->mpc_transfer.has_u64_memo = false;
 
-        return true;
+        return PARSING_DONE;
     } else {
         // Unknown shortname
-        return false;
+        return PARSING_FAILED_SHORTNAME_UNKNOWN;
     }
 }
 
@@ -132,11 +136,11 @@ static bool parse_rpc_mpc_token(buffer_t *chunk, transaction_t *tx) {
  * Invariants: Must either consume entire chunk (and return true), or consume any amount (and return
  * false).
  */
-static bool parse_rpc(buffer_t *chunk, transaction_t *tx) {
+static parser_status_e parse_rpc(buffer_t *chunk, transaction_t *tx) {
     if (blockchain_address_is_equal(&tx->basic.contract_address, &MPC_TOKEN_ADDRESS)) {
         return parse_rpc_mpc_token(chunk, tx);
     }
-    return false;
+    return PARSING_FAILED_ADDRESS_UNKNOWN;
 }
 
 parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
@@ -177,24 +181,23 @@ parser_status_e transaction_parser_update(transaction_parsing_state_t *state,
 
         // Try to parse RPC
         size_t current_chunk_offset = chunk->offset;
-        bool could_parse_rpc = parse_rpc(chunk, tx);
+        parser_status_e rpc_parsing_status = parse_rpc(chunk, tx);
         bool rpc_parsing_consumed_entire_chunk = chunk->offset == chunk->size;
-        if (could_parse_rpc && rpc_parsing_consumed_entire_chunk) {
+        if (rpc_parsing_status == PARSING_DONE && rpc_parsing_consumed_entire_chunk) {
             // If RPC could be parsed: No skipping required!
             state->rpc_bytes_parsed = state->rpc_bytes_total;
         } else {
             // If RPC couldn't be parsed. Mark as GENERIC. Reset and continue.
             chunk->offset = current_chunk_offset;
             tx->type = GENERIC_TRANSACTION;
+            tx->rpc_parsing_error = rpc_parsing_status;
         }
     }
 
     // Skip over RPC
     uint32_t skip_amount =
         min(chunk->size - chunk->offset, state->rpc_bytes_total - state->rpc_bytes_parsed);
-    if (!buffer_seek_cur(chunk, skip_amount)) {
-        return PARSING_FAILED_RPC_DATA;
-    }
+    buffer_seek_cur(chunk, skip_amount);  // Cannot fail
     state->rpc_bytes_parsed += skip_amount;
 
     return state->rpc_bytes_total == state->rpc_bytes_parsed ? PARSING_DONE : PARSING_CONTINUE;
