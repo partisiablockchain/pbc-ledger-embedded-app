@@ -67,7 +67,7 @@ VARIANT_PARAM = COIN
 VARIANT_VALUES = MPC
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
-DEBUG = 1
+#DEBUG = 1
 
 ########################################
 #     Application custom permissions   #
