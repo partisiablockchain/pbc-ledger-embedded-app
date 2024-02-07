@@ -148,12 +148,12 @@ int ui_display_transaction() {
     } else if (!N_storage.allow_blind_signing) {
         // Blind sign warning when disabled
 
-        nbgl_useCaseConfirm("Review Blind PBC transaction",
-                            "Blind signing is disabled, due to security reason. Enabled it from "
-                            "the settings menu before attempting again.",
-                            "Yes, Reject",
-                            "Yes, Reject",
-                            confirm_transaction_rejection);
+        nbgl_useCaseConfirm(
+            "Review Blind Transaction",
+            "Blind signing is disabled. Enabled it from the settings menu before attempting again.",
+            "Reject transaction",
+            "Reject transaction",
+            confirm_transaction_rejection);
 
     } else {
         // Blind sign
