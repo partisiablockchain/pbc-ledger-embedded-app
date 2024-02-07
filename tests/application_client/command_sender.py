@@ -13,8 +13,9 @@ CLA: int = 0xE0
 class P1(IntEnum):
     # Parameter 1 for first APDU number.
     P1_START = 0x00
-    # Parameter 1 for screen confirmation for GET_PUBLIC_KEY.
+    # Parameter 1 for screen confirmation for GET_ADDRESS.
     P1_CONFIRM = 0x01
+
 
 class P2(IntEnum):
     # Parameter 2 for last APDU to receive.
@@ -26,8 +27,8 @@ class P2(IntEnum):
 class InsType(IntEnum):
     GET_VERSION = 0x03
     GET_APP_NAME = 0x04
-    GET_PUBLIC_KEY = 0x05
     SIGN_TX = 0x06
+    GET_ADDRESS = 0x07
 
 
 class Errors(IntEnum):
@@ -78,19 +79,19 @@ class PbcCommandSender:
                                      p2=P2.P2_LAST,
                                      data=b"")
 
-    def get_public_key(self, path: str) -> RAPDU:
+    def get_address(self, path: str) -> RAPDU:
         return self.backend.exchange(cla=CLA,
-                                     ins=InsType.GET_PUBLIC_KEY,
+                                     ins=InsType.GET_ADDRESS,
                                      p1=P1.P1_START,
                                      p2=P2.P2_LAST,
                                      data=pack_derivation_path(path))
 
     @contextmanager
-    def get_public_key_with_confirmation(
-            self, path: str) -> Generator[None, None, None]:
+    def get_address_with_confirmation(self,
+                                      path: str) -> Generator[None, None, None]:
         with self.backend.exchange_async(
                 cla=CLA,
-                ins=InsType.GET_PUBLIC_KEY,
+                ins=InsType.GET_ADDRESS,
                 p1=P1.P1_CONFIRM,
                 p2=P2.P2_LAST,
                 data=pack_derivation_path(path)) as response:

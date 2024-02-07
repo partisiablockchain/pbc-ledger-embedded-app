@@ -17,10 +17,10 @@ typedef enum {
     GET_VERSION = 0x03,
     /** Instruction to get name of the application. */
     GET_APP_NAME = 0x04,
-    /** Instruction to get the public key of the given BIP32 path. */
-    GET_PUBLIC_KEY = 0x05,
     /** Instruction to sign the given transaction with the given BIP32 path. */
-    SIGN_TX = 0x06
+    SIGN_TX = 0x06,
+    /** Instruction to get the PBC blockchain address of the given BIP32 path. */
+    GET_ADDRESS = 0x07,
 } command_e;
 
 /**
@@ -49,10 +49,8 @@ typedef enum {
  * Structure for public key context information.
  */
 typedef struct {
-    /** Layout: format (1), x-coordinate (32), y-coodinate (32) */
-    uint8_t raw_public_key[65];
-    /** For public key derivation */
-    uint8_t chain_code[32];
+    /** Blockchain address to display and return. */
+    blockchain_address_s address;
 } pubkey_ctx_t;
 
 /**

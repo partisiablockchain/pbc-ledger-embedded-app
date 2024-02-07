@@ -26,37 +26,46 @@
 #include "buffer.h"
 #include "crypto_helpers.h"
 
-#include "get_public_key.h"
+#include "get_address.h"
 #include "../globals.h"
 #include "../types.h"
 #include "../status_words.h"
 #include "../ui/display.h"
 #include "../helper/send_response.h"
 
-int handler_get_public_key(buffer_t *cdata, bool display) {
+int handler_get_address(buffer_t *cdata, bool display) {
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_ADDRESS;
     G_context.state = STATE_NONE;
 
+    // Read BIP32 path
     if (!buffer_read_u8(cdata, &G_context.bip32_path_len) ||
         !buffer_read_bip32_path(cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
         return io_send_sw(SW_WRONG_DATA_LENGTH);
     }
 
+    // Derive public key from path
+    uint8_t raw_pubkey[65];
     cx_err_t error = bip32_derive_get_pubkey_256(CX_CURVE_256K1,
                                                  G_context.bip32_path,
                                                  G_context.bip32_path_len,
-                                                 G_context.pk_info.raw_public_key,
-                                                 G_context.pk_info.chain_code,
-                                                 CX_SHA512);
+                                                 raw_pubkey,
+                                                 NULL,
+                                                 CX_SHA512); // Doesn't matter
 
     if (error != CX_OK) {
         return io_send_sw(error);
     }
 
+    // Derive blockchain address from path
+    if (!blockchain_address_from_pubkey(raw_pubkey, &G_context.pk_info.address)) {
+        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+    }
+
+    // Display or send
     if (display) {
         return ui_display_address();
     }
 
-    return helper_send_response_pubkey();
+    return helper_send_response_address();
 }

@@ -43,13 +43,13 @@
 
 static void confirm_address_rejection(void) {
     // display a status page and go back to main
-    validate_pubkey(false);
+    validate_address(false);
     nbgl_useCaseStatus("Address verification\ncancelled", false, ui_menu_main);
 }
 
 static void confirm_address_approval(void) {
     // display a success status page and go back to main
-    validate_pubkey(true);
+    validate_address(true);
     nbgl_useCaseStatus("ADDRESS\nVERIFIED", true, ui_menu_main);
 }
 
@@ -71,12 +71,7 @@ int ui_display_address() {
         return io_send_sw(SW_BAD_STATE);
     }
 
-    blockchain_address_s address;
-    if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
-        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
-    }
-
-    if (!set_g_address(&address)) {
+    if (!set_g_address(&G_context.pk_info.address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 

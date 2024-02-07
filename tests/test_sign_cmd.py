@@ -1,9 +1,9 @@
 import pytest
 import time
 
-from application_client.transaction import Transaction, MpcTokenTransfer, from_hex
+from application_client.transaction import Transaction, MpcTokenTransfer
 from application_client.command_sender import PbcCommandSender, Errors
-from application_client.response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
+from application_client.response_unpacker import unpack_get_address_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID, NavIns
 from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_ID
@@ -59,8 +59,8 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
                                 transaction_name, transaction):
     client = PbcCommandSender(backend)
 
-    rapdu = client.get_public_key(path=KEY_PATH)
-    _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
+    rapdu = client.get_address(path=KEY_PATH)
+    address = unpack_get_address_response(rapdu.data)
 
     transaction_bytes = transaction.serialize()
 
@@ -79,7 +79,8 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     response = client.get_async_response().data
     rs_signature = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, rs_signature, CHAIN_ID)
+    assert transaction.verify_signature_with_address(address, rs_signature,
+                                                     CHAIN_ID)
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
@@ -88,8 +89,8 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
                            transaction_name, transaction):
     client = PbcCommandSender(backend)
 
-    rapdu = client.get_public_key(path=KEY_PATH)
-    _, public_key, _, _ = unpack_get_public_key_response(rapdu.data)
+    rapdu = client.get_address(path=KEY_PATH)
+    address = unpack_get_address_response(rapdu.data)
 
     transaction_bytes = transaction.serialize()
 
@@ -107,7 +108,8 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 
     response = client.get_async_response().data
     rs_signature = unpack_sign_tx_response(response)
-    assert transaction.verify_signature(public_key, rs_signature, CHAIN_ID)
+    assert transaction.verify_signature_with_address(address, rs_signature,
+                                                     CHAIN_ID)
 
 
 # Transaction signature refused test
@@ -116,8 +118,8 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = PbcCommandSender(backend)
 
-    rapdu = client.get_public_key(path=KEY_PATH)
-    _, pub_key, _, _ = unpack_get_public_key_response(rapdu.data)
+    rapdu = client.get_address(path=KEY_PATH)
+    address = unpack_get_address_response(rapdu.data)
 
     transaction_bytes = transaction_examples.TRANSACTION_MPC_TRANSFER.serialize(
     )

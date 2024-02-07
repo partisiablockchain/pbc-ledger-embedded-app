@@ -44,8 +44,8 @@ static char g_address_title[10];
 static action_validate_cb g_validate_callback;
 
 // Validate/Invalidate public key and go back to home
-static void ui_action_validate_pubkey(bool choice) {
-    validate_pubkey(choice);
+static void ui_action_validate_address(bool choice) {
+    validate_address(choice);
     ui_menu_main();
 }
 
@@ -108,17 +108,12 @@ int ui_display_address() {
     }
 
     // Format address
-    blockchain_address_s address;
-    if (!blockchain_address_from_pubkey(G_context.pk_info.raw_public_key, &address)) {
-        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
-    }
-
-    if (!set_g_address(&address)) {
+    if (!set_g_address(&G_context.pk_info.address)) {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
     // Start flow
-    g_validate_callback = &ui_action_validate_pubkey;
+    g_validate_callback = &ui_action_validate_address;
     ux_flow_init(0, ux_display_pubkey_flow, NULL);
     return 0;
 }
