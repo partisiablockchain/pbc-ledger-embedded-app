@@ -20,38 +20,39 @@
 #include <stdbool.h>  // bool
 #include <string.h>   // memmove
 
-#include "os.h"
+#include "address.h"
+#include "transaction/types.h"
+
+#if defined(HAVE_SHA256)
+
 #include "cx.h"
 #include "ledger_assert.h"
 
-#include "address.h"
-
-#include "transaction/types.h"
-
-bool address_from_pubkey(const uint8_t public_key[static 65], uint8_t *out, size_t out_len) {
-    uint8_t address[32] = {0};
-    cx_sha3_t keccak256;
-
+bool blockchain_address_from_pubkey(const uint8_t public_key[static 65],
+                                    blockchain_address_s *out) {
     LEDGER_ASSERT(out != NULL, "NULL out");
 
-    if (out_len < ADDRESS_LEN) {
+    out->raw_bytes[0] = BLOCKCHAIN_ADDRESS_ACCOUNT;
+
+    cx_sha256_t digest;
+
+    if (cx_hash_init((cx_hash_t *) &digest, CX_SHA256) != CX_OK) {
         return false;
     }
 
-    if (cx_keccak_init_no_throw(&keccak256, 256) != CX_OK) {
+    uint8_t hashed[CX_SHA256_SIZE];
+
+    if (cx_hash_no_throw((cx_hash_t *) &digest, CX_LAST, public_key, 65, hashed, sizeof(hashed)) !=
+        CX_OK) {
         return false;
     }
 
-    if (cx_hash_no_throw((cx_hash_t *) &keccak256,
-                         CX_LAST,
-                         public_key + 1,
-                         64,
-                         address,
-                         sizeof(address)) != CX_OK) {
-        return false;
-    }
-
-    memmove(out, address + sizeof(address) - ADDRESS_LEN, ADDRESS_LEN);
+    memcpy(&out->raw_bytes[1], hashed + 12, 20);
 
     return true;
+}
+#endif
+
+bool blockchain_address_is_equal(blockchain_address_s *a, blockchain_address_s *b) {
+    return memcmp(a, b, sizeof(blockchain_address_s)) == 0;
 }

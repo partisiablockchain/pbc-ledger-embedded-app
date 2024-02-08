@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * Instruction class of the Boilerplate application.
+ * Instruction class used by the Partisia Blockchain App.
  */
 #define CLA 0xE0
 
@@ -24,13 +24,3 @@
  * Maximum transaction length (bytes).
  */
 #define MAX_TRANSACTION_LEN 510
-
-/**
- * Maximum signature length (bytes).
- */
-#define MAX_DER_SIG_LEN 72
-
-/**
- * Exponent used to convert mBOL to BOL unit (N BOL = N * 10^3 mBOL).
- */
-#define EXPONENT_SMALLEST_UNIT 3

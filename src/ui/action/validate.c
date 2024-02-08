@@ -21,13 +21,13 @@
 
 #include "validate.h"
 #include "../menu.h"
-#include "../../sw.h"
+#include "../../status_words.h"
 #include "../../globals.h"
 #include "../../helper/send_response.h"
 
-void validate_pubkey(bool choice) {
+void validate_address(bool choice) {
     if (choice) {
-        helper_send_response_pubkey();
+        helper_send_response_address();
     } else {
         io_send_sw(SW_DENY);
     }
@@ -35,26 +35,23 @@ void validate_pubkey(bool choice) {
 
 static int crypto_sign_message(void) {
     uint32_t info = 0;
-    size_t sig_len = sizeof(G_context.tx_info.signature);
 
-    cx_err_t error = bip32_derive_ecdsa_sign_hash_256(CX_CURVE_256K1,
-                                                      G_context.bip32_path,
-                                                      G_context.bip32_path_len,
-                                                      CX_RND_RFC6979 | CX_LAST,
-                                                      CX_SHA256,
-                                                      G_context.tx_info.m_hash,
-                                                      sizeof(G_context.tx_info.m_hash),
-                                                      G_context.tx_info.signature,
-                                                      &sig_len,
-                                                      &info);
+    // Derives private key and signs the hash.
+    cx_err_t error = bip32_derive_ecdsa_sign_rs_hash_256(CX_CURVE_256K1,
+                                                         G_context.bip32_path,
+                                                         G_context.bip32_path_len,
+                                                         CX_RND_RFC6979 | CX_LAST,
+                                                         CX_SHA256,
+                                                         G_context.tx_info.m_hash,
+                                                         sizeof(G_context.tx_info.m_hash),
+                                                         G_context.tx_info.signature.r,
+                                                         G_context.tx_info.signature.s,
+                                                         &info);
     if (error != CX_OK) {
         return -1;
     }
 
-    PRINTF("Signature: %.*H\n", sig_len, G_context.tx_info.signature);
-
-    G_context.tx_info.signature_len = sig_len;
-    G_context.tx_info.v = (uint8_t)(info & CX_ECCINFO_PARITY_ODD);
+    G_context.tx_info.signature.recovery_id = info & (uint8_t) CX_ECCINFO_PARITY_ODD;
 
     return 0;
 }

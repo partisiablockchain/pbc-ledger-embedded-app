@@ -1,24 +1,23 @@
 # Technical Specification
 
-> **Warning**
-This documentation is a template and shall be updated with your own APDUs.
-
 ## About
 
-This documentation describes the APDU messages interface to communicate with the Boilerplate application.
+**WARNING: This documentation has not be updated for Partisia Blockchain App.**
+
+This documentation describes the APDU messages interface to communicate with the PBC application.
 
 The application covers the following functionalities :
 
-  - Get a public Boilerplate address given a BIP 32 path
-  - Sign a basic Boilerplate transaction given a BIP 32 path and raw transaction
-  - Retrieve the Boilerplate app version
-  - Retrieve the Boilerplate app name
+  - Get a public PBC address given a BIP 32 path
+  - Sign a basic PBC transaction given a BIP 32 path and raw transaction
+  - Retrieve the PBC app version
+  - Retrieve the PBC app name
 
 The application interface can be accessed over HID or BLE
 
 ## APDUs
 
-### GET BOILERPLATE PUBLIC ADDRESS
+### GET PBC PUBLIC ADDRESS
 
 #### Description
 
@@ -38,27 +37,27 @@ The address can be optionally checked on the device before being returned.
 ##### `Input data`
 
 | Description                                                      | Length |
-| ---                                                              | ---    | 
+| ---                                                              | ---    |
 | Number of BIP 32 derivations to perform (max 10)                 | 1      |
 | First derivation index (big endian)                              | 4      |
 | ...                                                              | 4      |
 | Last derivation index (big endian)                               | 4      |
-       
+
 ##### `Output data`
 
 | Description                                                      | Length |
-| ---                                                              | ---    | 
-| Public Key length                                                | 1      | 
+| ---                                                              | ---    |
+| Public Key length                                                | 1      |
 | Public Key                                                       | var    |
 | Chain code length                                                | 1      |
 | Chain code                                                       | var    |
 
 
-### SIGN BOILERPLATE TRANSACTION
+### SIGN PBC TRANSACTION
 
 #### Description
 
-This command signs a Boilerplate transaction after having the user validate the transactions parameters.
+This command signs a PBC transaction after having the user validate the transactions parameters.
 
 The input data is the RLP encoded transaction streamed to the device in 255 bytes maximum data chunks.
 
@@ -73,34 +72,33 @@ The input data is the RLP encoded transaction streamed to the device in 255 byte
 
 ##### `Input data (first transaction data block)`
 
-| Description                                          | Length   | 
-| ---                                                  | ---      | 
+| Description                                          | Length   |
+| ---                                                  | ---      |
 | Number of BIP 32 derivations to perform (max 10)     | 1        |
 | First derivation index (big endian)                  | 4        |
 | ...                                                  | 4        |
 | Last derivation index (big endian)                   | 4        |
-  
+
 ##### `Input data (other transaction data block)`
 
 | Description                                          | Length   |
 | ---                                                  | ---      |
 | Transaction chunk                                    | variable |
-                              
+
 
 ##### `Output data`
 
 | Description                                          | Length   |
-| ---                                                  | ---      | 
+| ---                                                  | ---      |
 | Signature length                                     | 1        |
 | Signature                                            | variable |
 | v                                                    | 1        |
-
 
 ### GET APP VERSION
 
 #### Description
 
-This command returns boilerplate application version
+This command returns PBC application version
 
 #### Coding
 
@@ -127,7 +125,7 @@ None
 
 #### Description
 
-This command returns boilerplate application name
+This command returns PBC application name
 
 #### Coding
 

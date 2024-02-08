@@ -1,8 +1,11 @@
 [![Ensure compliance with Ledger guidelines](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/guidelines_enforcer.yml/badge.svg)](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/guidelines_enforcer.yml) [![Build and run functional tests using ragger through reusable workflow](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/build_and_functional_tests.yml/badge.svg?branch=master)](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/build_and_functional_tests.yml)
 
-# Ledger Boilerplate Application
+# Partisia Blockchain Ledger Embedded Application
 
-This is a boilerplate application which can be forked to start a new project for the Ledger Nano S/X/SP and Stax.
+Ledger Application for interacting with Partisia Blockchain.
+
+Based on [Ledger app-boilerplate](https://github.com/LedgerHQ/app-boilerplate),
+commit `7d1c3c39d8c7d3567c5a6650fe339a8e5160b497`.
 
 ## Quick start guide
 
@@ -97,7 +100,7 @@ First make sure you have the proper udev rules added on your host :
 ```shell
 # Run these commands on your host, from the app's source folder.
 sudo cp .vscode/20-ledger.ledgerblue.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules 
+sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
@@ -118,7 +121,7 @@ Run these commands on your host from the app's source folder once you have [buil
 
 ```shell
 # Install Python virtualenv
-python3 -m pip install virtualenv 
+python3 -m pip install virtualenv
 # Create the 'ledger' virtualenv
 python3 -m virtualenv ledger
 ```
@@ -130,7 +133,7 @@ Enter the Python virtual environment
 
 ```shell
 # Install Ledgerblue (tool to load the app)
-python3 -m pip install ledgerblue 
+python3 -m pip install ledgerblue
 # Load the app.
 python3 -m ledgerblue.runScript --scp --fileName bin/app.apdu --elfFile bin/app.elf
 ```
@@ -163,7 +166,7 @@ On Linux, you can use [Ledger's VS Code extension](#with-vscode) to run the test
 Install the tests requirements :
 
 ```shell
-pip install -r tests/requirements.txt 
+pip install -r tests/requirements.txt
 ```
 
 Then you can :
@@ -206,12 +209,3 @@ It outputs 3 artifacts:
 - `compiled_app_binaries` within binary files of the build process for each device
 - `code-coverage` within HTML details of code coverage
 - `documentation` within HTML auto-generated documentation
-
-## Are you developing a Nano S, S Plus, X application?
-
-If so, This boilerplate will help you get started.
-
-For a smooth and quick integration:
-
-- See the developers’ documentation on the [Developer Portal](https://developers.ledger.com/), and
-- [Go on Discord](https://developers.ledger.com/discord-pro/) to chat with developer support and the developer community.

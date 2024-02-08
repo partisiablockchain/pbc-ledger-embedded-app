@@ -24,7 +24,7 @@
 #include "types.h"
 #include "globals.h"
 #include "io.h"
-#include "sw.h"
+#include "status_words.h"
 #include "ui/menu.h"
 #include "apdu/dispatcher.h"
 
@@ -51,38 +51,25 @@ void app_main() {
     // Initialize the NVM data if required
     if (N_storage.initialized != 0x01) {
         internal_storage_t storage;
-        storage.dummy1_allowed = 0x00;
-        storage.dummy2_allowed = 0x00;
         storage.initialized = 0x01;
+        storage.allow_blind_signing = 0x00;
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
 
     for (;;) {
         // Receive command bytes in G_io_apdu_buffer
         if ((input_len = io_recv_command()) < 0) {
-            PRINTF("=> io_recv_command failure\n");
             return;
         }
 
         // Parse APDU command from G_io_apdu_buffer
         if (!apdu_parser(&cmd, G_io_apdu_buffer, input_len)) {
-            PRINTF("=> /!\\ BAD LENGTH: %.*H\n", input_len, G_io_apdu_buffer);
             io_send_sw(SW_WRONG_DATA_LENGTH);
             continue;
         }
 
-        PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=%.*H\n",
-               cmd.cla,
-               cmd.ins,
-               cmd.p1,
-               cmd.p2,
-               cmd.lc,
-               cmd.lc,
-               cmd.data);
-
         // Dispatch structured APDU command to handler
         if (apdu_dispatcher(&cmd) < 0) {
-            PRINTF("=> apdu_dispatcher failure\n");
             return;
         }
     }
