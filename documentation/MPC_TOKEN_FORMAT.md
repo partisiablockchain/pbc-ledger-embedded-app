@@ -1,7 +1,7 @@
 
 # MPC Token Format
 
-The MPC Token Contract (Contract Address [`01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881`](https://browser.partisiablockchain.com/contracts/01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881)) manages the goverance token of Partisia Blockchain, the
+The MPC Token Contract (Contract Address [`01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881`](https://browser.partisiablockchain.com/contracts/01a4082d9d560749ecd0ffa1dcaaaee2c2cb25d881)) manages the governance token of Partisia Blockchain, the
 [MPC tokens](https://partisiablockchain.gitlab.io/documentation/pbc-fundamentals/dictionary.html#mpc-token) themselves.
 
 This page will cover the few interactions that are explicitly supported by the

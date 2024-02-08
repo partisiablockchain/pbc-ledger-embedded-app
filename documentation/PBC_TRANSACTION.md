@@ -19,7 +19,7 @@ PBC addresses are 21-byte long hexadecimal numbers, identifiers derived from the
 | `03` | #BLOCKCHAIN_ADDRESS_CONTRACT_ZK | Zero knowledge contracts are the more complicated contracts that are similar to public contracts, but have confidential state as well.  |
 | `04` | #BLOCKCHAIN_ADDRESS_CONTRACT_GOVERNANCE | Governance contracts are a special type of system contract that is deemed necessary for the system to run and therefore are (mostly) free to interact with.  |
 
-Examples of governance and system contracts can be found in the [Partisia Blockchain Goverance Contracts Overview](https://partisiablockchain.gitlab.io/documentation/pbc-fundamentals/governance-system-smart-contracts-overview.html).
+Examples of governance and system contracts can be found in the [Partisia Blockchain Governance Contracts Overview](https://partisiablockchain.gitlab.io/documentation/pbc-fundamentals/governance-system-smart-contracts-overview.html).
 
 ### Transaction
 
@@ -38,7 +38,7 @@ Big-endianness is used for all integers.
 
 ### Chain ID
 
-Each instance of Partisia Blockchain has a unique chain ID, to distingiush
+Each instance of Partisia Blockchain has a unique chain ID, to distinguish
 them. The ids are used when creating a signature, to prevent replaying of
 transactions across chains. Ids are always prefixed by their size as a u32. The most relevant ids are:
 
