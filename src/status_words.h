@@ -68,4 +68,4 @@
  * Basis status word for failure to parse a transaction. Is or'ed with
  * parser_status_e to determine the specific error.
  */
-#define SW_TX_PARSING_FAIL                    0xB100
+#define SW_TX_PARSING_FAIL 0xB100
