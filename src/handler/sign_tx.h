@@ -14,12 +14,13 @@
  *
  * @param[in,out] chunk_data
  *   Command data with BIP32 path and raw transaction serialized.
- * @param[in]     chunk_idx
- *   Index number of the APDU chunk_idx.
+ * @param[in]     first_chunk
+ *   Whether this chunk is the first
  * @param[in]       anymore_blocks_after_this_one
- *   Whether anymore_blocks_after_this_one APDU chunk_idx to be received or not.
+ *   Whether anymore_blocks_after_this_one Whether there will continue to
+ *   arrive chunks after this one.
  *
  * @return zero or positive integer if success, negative integer otherwise.
  *
  */
-int handler_sign_tx(buffer_t *chunk_data, uint8_t chunk_idx, bool anymore_blocks_after_this_one);
+int handler_sign_tx(buffer_t *chunk_data, bool first_chunk, bool anymore_blocks_after_this_one);

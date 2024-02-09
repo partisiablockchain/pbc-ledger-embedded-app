@@ -27,10 +27,10 @@ The address can be optionally checked on the device before being returned.
 
 ##### `Command`
 
-| CLA | INS   | P1                                                 | P2    | Lc       | Le       |
-| --- | ---   | ---                                                | ---   | ---      | ---      |
+| CLA  | INS   | P1                                                 | P2    | Lc       | Le       |
+| ---  | ---   | ---                                                | ---   | ---      | ---      |
 | `E0` | `05`  | `00`: return address                               |`00`   | variable | variable |
-|     |       | `01`: display address and confirm before returning |       |          |          |
+|      |       | `01`: display address and confirm before returning |       |          |          |
 
 ##### `Input data`
 
@@ -54,16 +54,21 @@ The address can be optionally checked on the device before being returned.
 
 This command signs a PBC transaction after having the user validate the transactions parameters.
 
-The input data is the transaction streamed to the device in 255 bytes maximum data chunks. The ID of the chain to sign for must be sent in the first block.
+The input data is the transaction streamed to the device in 255 bytes maximum
+data chunks. The ID of the chain to sign for must be sent in the first block.
 
 #### Coding
 
 ##### `Command`
 
-| CLA | INS  | P1                   | P2                               | Lc       | Le       |
-| --- | ---  | ---                  | ---                              | ---      | ---      |
-|`E0` |`06`  | `00`-`FF` : chunk index | `00` : last transaction data block | variable | variable |
-|     |      |                      | `80` : subsequent transaction data block |    |          |
+| CLA | INS  | P1                 | P2               | Lc       | Le       |
+| --- | ---  | ---                | ---              | ---      | ---      |
+|`E0` |`06`  | `00` : first chunk | `00`: last chunk | variable | variable |
+|     |      | `01` : not first   | `01`: not last   |          |          |
+
+Chunk are expected to be ordered as:
+
+| `P1=0 P2=1` (First) | `P1=1 P2=1` (Middle) | ... | `P1=1 P2=0` (Last) |
 
 ##### `Input data (first transaction data block)`
 

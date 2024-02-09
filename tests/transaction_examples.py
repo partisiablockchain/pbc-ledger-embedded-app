@@ -33,7 +33,7 @@ TRANSACTION_GENERIC_CONTRACT_HUGE_RPC = Transaction(
     gas_cost=0x333,
     contract_address=Address.from_hex(
         "01de0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
-    rpc=from_hex('f0') * (207 + 255 * 100),
+    rpc=from_hex('f0') * (207 + 255 * 299), # Large enough to require 300 chunks
 )
 
 TRANSACTION_MPC_TRANSFER_FORGOT_SHORTNAME = Transaction(
@@ -142,7 +142,7 @@ TRANSACTION_MPC_TRANSFER_WITH_MEMO_LARGE_RIDICULOUS = Transaction(
         Address.from_hex('000000000000000000000000000000000000012345'),
         0x444,
         b"This is a very long memo; just you know way too long, composed almost exclusively by: "
-        + b'A' * 10000,
+        + b'A' * 76500, # Large enough to require at least 300 blocks.
     ),
 )
 
