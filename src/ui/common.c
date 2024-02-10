@@ -15,6 +15,8 @@ char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 char g_address[2 * ADDRESS_LEN + 1];
 // Text buffer for MPC transfer memo
 char g_memo[MEMO_MAX_LENGTH + 1];
+// Text buffer for Chain Id
+char g_chain_id[CHAIN_ID_MAX_LENGTH + 1];
 
 /**
  * Formats a blockchain_address_s as a hex string.
@@ -53,6 +55,20 @@ WARN_UNUSED_RESULT
 bool set_g_address(blockchain_address_s* address) {
     memset(g_address, 0, sizeof(g_address));
     return blockchain_address_format(address, g_address, sizeof(g_address));
+}
+
+WARN_UNUSED_RESULT
+bool set_g_chain_id(chain_id_t* chain_id) {
+    int num_written_chars = snprintf(g_chain_id,
+                                     sizeof(g_chain_id),
+                                     "%.*s",
+                                     (int) chain_id->length,
+                                     chain_id->raw_bytes);
+    if (!(0 <= num_written_chars && (size_t) num_written_chars < sizeof(g_chain_id))) {
+        return false;
+    }
+    replace_unreadable(g_chain_id, sizeof(g_chain_id));
+    return true;
 }
 
 WARN_UNUSED_RESULT

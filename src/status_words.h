@@ -65,3 +65,7 @@
  * Status word for signature fail.
  */
 #define SW_SIGNATURE_FAIL 0xB008
+/**
+ * Status word for fail to display chain id.
+ */
+#define SW_DISPLAY_CHAIN_ID_FAIL 0xB009
