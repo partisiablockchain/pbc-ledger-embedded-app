@@ -1,7 +1,6 @@
 #pragma once
 
 #include "buffer.h"
-
 #include "transaction/types.h"
 
 /**

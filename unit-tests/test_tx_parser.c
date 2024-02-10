@@ -4,13 +4,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 #include "varint.h"
 #include "write.h"
 #include "buffer.h"
 
 #include <cmocka.h>
 
+#include "well_known.h"
+#include "buffer_util.h"
 #include "transaction/deserialize.h"
 
 /// Transactions
@@ -112,27 +115,27 @@ static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_TOO_MANY_BYTES[] = {
 };
 
 static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO[] = {
-    // nonce (8)
+    // 0: nonce (8)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02,
-    // valid-to time (8)
+    // 8: valid-to time (8)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x04,
-    // gas cost (8)
+    // 16: gas cost (8)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06,
-    // contract address (21): MPC token contract
+    // 24: contract address (21): MPC token contract
     0x01, 0xa4, 0x08, 0x2d, 0x9d, 0x56, 0x07, 0x49,
     0xec, 0xd0, 0xff, 0xa1, 0xdc, 0xaa, 0xae, 0xe2,
     0xc2, 0xcb, 0x25, 0xd8, 0x81,
-    // rpc length (4): 38
+    // 45: rpc length (4): 38
     0x00, 0x00, 0x00, 0x26,
-    // shortname (1)
+    // 49: shortname (1)
     0x0d,
-    // recipient (21)
+    // 50: recipient (21)
     0x00, 0xc3, 0x39, 0x97, 0x54, 0x4e, 0x31, 0x75,
     0xd2, 0x66, 0xbd, 0x02, 0x24, 0x39, 0xb2, 0x2c,
     0xdb, 0x16, 0x50, 0x8c, 0x7a,
-    // Token amount (8)
+    // 71: Token amount (8)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x33,
-    // Small memo (8)
+    // 79: Small memo (8)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x99, 0x99,
 };
 
@@ -214,6 +217,23 @@ static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_VERY_LARGE_MEMO_PART_2[] = {
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n',
+};
+
+static uint8_t TRANSACTION_BYTES_MPC_TRANSFER_UNKNOWN_SHORTNAME[] = {
+    // 0: nonce (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02,
+    // 8: valid-to time (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x04,
+    // 16: gas cost (8)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06,
+    // 24: contract address (21): MPC token contract
+    0x01, 0xa4, 0x08, 0x2d, 0x9d, 0x56, 0x07, 0x49,
+    0xec, 0xd0, 0xff, 0xa1, 0xdc, 0xaa, 0xae, 0xe2,
+    0xc2, 0xcb, 0x25, 0xd8, 0x81,
+    // 45: rpc length (4): 38
+    0x00, 0x00, 0x00, 0x26,
+    // 49: shortname (1)
+    0x7f,
 };
 
 // clang-format on
@@ -439,6 +459,277 @@ static void test_tx_serialization_mpc_token_transfer_large_multichunk_memo(void 
                      GENERIC_TRANSACTION);  // Too large to be easily parsed; default to blind-sign
 }
 
+/**
+ * Variant test that cuts off a part of the transaction bytes, and checks
+ * whether parsing it will produce the expected error.
+ */
+static void test_variant_transaction_cut_off(uint8_t *transaction_bytes,
+                                             size_t length,
+                                             parser_status_e expected_error) {
+    uint8_t raw_tx[length];
+    memcpy(raw_tx, transaction_bytes, length);
+    buffer_t buf = {.ptr = raw_tx, .size = sizeof(raw_tx), .offset = 0};
+
+    // Run test
+    transaction_parsing_state_t parsing_state;
+    transaction_t tx;
+
+    transaction_parser_init(&parsing_state);
+    parser_status_e status = transaction_parser_update(&parsing_state, &buf, &tx);
+
+    // Check internal state of parser
+    assert_int_equal(status, expected_error);
+}
+
+static void test_cut_off_transactions(void **state) {
+    (void) state;
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     0,
+                                     PARSING_FAILED_NONCE);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     4,
+                                     PARSING_FAILED_NONCE);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     7,
+                                     PARSING_FAILED_NONCE);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     8,
+                                     PARSING_FAILED_VALID_TO_TIME);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     15,
+                                     PARSING_FAILED_VALID_TO_TIME);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     16,
+                                     PARSING_FAILED_GAS_COST);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     23,
+                                     PARSING_FAILED_GAS_COST);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     24,
+                                     PARSING_FAILED_CONTRACT_ADDRESS);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     44,
+                                     PARSING_FAILED_CONTRACT_ADDRESS);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     45,
+                                     PARSING_FAILED_RPC_LENGTH);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     48,
+                                     PARSING_FAILED_RPC_LENGTH);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO, 49, PARSING_CONTINUE);
+    test_variant_transaction_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                     sizeof(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO) - 1,
+                                     PARSING_CONTINUE);
+}
+
+/**
+ * Variant test that cuts off a part of the transaction bytes, replacing the
+ * the RPC length to fit the new length, and checks
+ * whether parsing it will produce the expected error.
+ */
+static void test_variant_transaction_rpc_cut_off(uint8_t *transaction_bytes,
+                                                 size_t length,
+                                                 parser_status_e error) {
+    uint8_t raw_tx[length];
+    memcpy(raw_tx, transaction_bytes, length);
+    buffer_t buf = {.ptr = raw_tx, .size = sizeof(raw_tx), .offset = 0};
+    raw_tx[45] = 0;
+    raw_tx[46] = 0;
+    raw_tx[47] = 0;
+    raw_tx[48] = (uint8_t) (length - 48);
+
+    // Run test
+    transaction_parsing_state_t parsing_state;
+    transaction_t tx;
+
+    transaction_parser_init(&parsing_state);
+    parser_status_e status = transaction_parser_update(&parsing_state, &buf, &tx);
+
+    // Check entire buffer consumed
+    assert_int_equal(buf.offset, buf.size);
+
+    // Check internal state of parser
+    assert_int_equal(status, PARSING_CONTINUE);
+    assert_int_equal(tx.type, GENERIC_TRANSACTION);
+    assert_int_equal(tx.rpc_parsing_error, error);
+}
+
+static void test_cut_off_rpc_no_memo(void **state) {
+    (void) state;
+
+    // No memo
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                         49,
+                                         PARSING_FAILED_SHORTNAME);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                         50,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                         70,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                         71,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_NO_MEMO,
+                                         78,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+}
+
+static void test_cut_off_rpc_small_memo(void **state) {
+    (void) state;
+    // Small memo
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         49,
+                                         PARSING_FAILED_SHORTNAME);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         50,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         70,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         71,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         78,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         79,
+                                         PARSING_FAILED_MPC_MEMO);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_SMALL_MEMO,
+                                         86,
+                                         PARSING_FAILED_MPC_MEMO);
+}
+
+static void test_cut_off_rpc_large_memo(void **state) {
+    (void) state;
+    // Large memo
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         49,
+                                         PARSING_FAILED_SHORTNAME);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         50,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         70,
+                                         PARSING_FAILED_MPC_RECIPIENT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         71,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         78,
+                                         PARSING_FAILED_MPC_TOKEN_AMOUNT);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         79,
+                                         PARSING_FAILED_MPC_MEMO);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         83,
+                                         PARSING_FAILED_MPC_MEMO);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         84,
+                                         PARSING_FAILED_MPC_MEMO);
+    test_variant_transaction_rpc_cut_off(TRANSACTION_BYTES_MPC_TRANSFER_LARGE_MEMO,
+                                         85,
+                                         PARSING_FAILED_MPC_MEMO);
+}
+
+static void test_mpc_unknown_shortname() {
+    uint8_t raw_tx[sizeof(TRANSACTION_BYTES_MPC_TRANSFER_UNKNOWN_SHORTNAME)];
+    memcpy(raw_tx,
+           TRANSACTION_BYTES_MPC_TRANSFER_UNKNOWN_SHORTNAME,
+           sizeof(TRANSACTION_BYTES_MPC_TRANSFER_UNKNOWN_SHORTNAME));
+    buffer_t buf = {.ptr = raw_tx, .size = sizeof(raw_tx), .offset = 0};
+
+    // Run test
+    transaction_parsing_state_t parsing_state;
+    transaction_t tx;
+
+    transaction_parser_init(&parsing_state);
+    parser_status_e status = transaction_parser_update(&parsing_state, &buf, &tx);
+
+    // Check entire buffer consumed
+    assert_int_equal(buf.offset, buf.size);
+
+    // Check internal state of parser
+    assert_int_equal(status, PARSING_CONTINUE);
+    assert_int_equal(tx.type, GENERIC_TRANSACTION);
+    assert_int_equal(tx.rpc_parsing_error, PARSING_FAILED_SHORTNAME_UNKNOWN);
+}
+
+static void test_blockchain_address_is_equal(void **state) {
+    (void) state;
+
+    // Self is equals
+    assert_true(blockchain_address_is_equal(&MPC_TOKEN_ADDRESS, &MPC_TOKEN_ADDRESS));
+
+    // Other is equals
+    blockchain_address_s address;
+    memcpy(address.raw_bytes, &MPC_TOKEN_ADDRESS.raw_bytes, 21);
+    assert_true(blockchain_address_is_equal(&address, &MPC_TOKEN_ADDRESS));
+
+    // Altered is not equals
+    address.raw_bytes[4] = ~address.raw_bytes[4];
+    assert_false(blockchain_address_is_equal(&address, &MPC_TOKEN_ADDRESS));
+}
+
+static char CHAIN_ID_MAINNET[] = "Partisia Blockchain";
+static char CHAIN_ID_TESTNET[] = "Partisia Blockchain Testnet";
+static char CHAIN_ID_TOO_LONG[] = "Partisia Blockchain Unknownnet";
+static char CHAIN_ID_SHORT[] = "Smallnet";
+static char CHAIN_ID_EMPTY[] = "";
+
+static void test_variant_buffer_read_chain_id(char *str, size_t str_len) {
+    uint8_t raw_buffer[4 + str_len];
+    memcpy(raw_buffer + 4, str, str_len);
+    raw_buffer[0] = 0;
+    raw_buffer[1] = 0;
+    raw_buffer[2] = 0;
+    raw_buffer[3] = (uint8_t) str_len;
+    buffer_t buf = {.ptr = raw_buffer, .size = sizeof(raw_buffer), .offset = 0};
+
+    chain_id_t read_chain_id;
+    bool success = buffer_read_chain_id(&buf, &read_chain_id);
+
+    assert_true(success);
+    assert_int_equal(read_chain_id.length, str_len);
+    assert_memory_equal(read_chain_id.raw_bytes, str, str_len);
+}
+
+static void test_buffer_read_chain_id_too_long() {
+    char *str = CHAIN_ID_TOO_LONG;
+    size_t str_len = sizeof(CHAIN_ID_TOO_LONG) - 1;
+    uint8_t raw_buffer[4 + str_len];
+    memcpy(raw_buffer + 4, str, str_len);
+    raw_buffer[0] = 0;
+    raw_buffer[1] = 0;
+    raw_buffer[2] = 0;
+    raw_buffer[3] = (uint8_t) str_len;
+    buffer_t buf = {.ptr = raw_buffer, .size = sizeof(raw_buffer), .offset = 0};
+
+    chain_id_t read_chain_id;
+    bool success = buffer_read_chain_id(&buf, &read_chain_id);
+
+    assert_false(success);
+}
+
+static void test_buffer_read_chain_id_fail_to_read_size() {
+    uint8_t raw_buffer[2] = {0, 0};
+    buffer_t buf = {.ptr = raw_buffer, .size = 0, .offset = 0};
+
+    chain_id_t read_chain_id;
+    bool success = buffer_read_chain_id(&buf, &read_chain_id);
+    assert_false(success);
+}
+
+static void test_buffer_read_chain_id(void **state) {
+    (void) state;
+
+    test_variant_buffer_read_chain_id(CHAIN_ID_EMPTY, sizeof(CHAIN_ID_EMPTY) - 1);
+    test_variant_buffer_read_chain_id(CHAIN_ID_SHORT, sizeof(CHAIN_ID_SHORT) - 1);
+    test_variant_buffer_read_chain_id(CHAIN_ID_MAINNET, sizeof(CHAIN_ID_MAINNET) - 1);
+    test_variant_buffer_read_chain_id(CHAIN_ID_TESTNET, sizeof(CHAIN_ID_TESTNET) - 1);
+}
+
 int main() {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_tx_serialization_generic),
@@ -447,6 +738,15 @@ int main() {
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_small_memo),
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_large_memo),
         cmocka_unit_test(test_tx_serialization_mpc_token_transfer_large_multichunk_memo),
+        cmocka_unit_test(test_cut_off_transactions),
+        cmocka_unit_test(test_cut_off_rpc_no_memo),
+        cmocka_unit_test(test_cut_off_rpc_small_memo),
+        cmocka_unit_test(test_cut_off_rpc_large_memo),
+        cmocka_unit_test(test_blockchain_address_is_equal),
+        cmocka_unit_test(test_mpc_unknown_shortname),
+        cmocka_unit_test(test_buffer_read_chain_id),
+        cmocka_unit_test(test_buffer_read_chain_id_too_long),
+        cmocka_unit_test(test_buffer_read_chain_id_fail_to_read_size),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

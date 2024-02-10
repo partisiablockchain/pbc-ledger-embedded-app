@@ -60,6 +60,18 @@ typedef enum {
     PARSING_FAILED_RPC_LENGTH = -5,
     /** Parsing failed while parsing RPC data. */
     PARSING_FAILED_RPC_DATA = -6,
+    /** Parsing failed while parsing contract shortname. */
+    PARSING_FAILED_SHORTNAME = -7,
+    /** Parsing failed because shortname was unknown. */
+    PARSING_FAILED_SHORTNAME_UNKNOWN = -8,
+    /** Parsing failed because contract address was unknown. */
+    PARSING_FAILED_ADDRESS_UNKNOWN = -9,
+    /** Parsing failed while parsing recipient. */
+    PARSING_FAILED_MPC_RECIPIENT = -10,
+    /** Parsing failed while parsing token amount. */
+    PARSING_FAILED_MPC_TOKEN_AMOUNT = -11,
+    /** Parsing failed while parsing memo. */
+    PARSING_FAILED_MPC_MEMO = -12,
 } parser_status_e;
 
 /**
@@ -68,9 +80,9 @@ typedef enum {
  */
 typedef enum {
     /** Transaction to an arbitrary contract. Requires blind-signing. */
-    GENERIC_TRANSACTION = 0,
+    GENERIC_TRANSACTION = 1,
     /** MPC transfer involving the MPC Token contract. Can be clear-signed. */
-    MPC_TRANSFER = 1
+    MPC_TRANSFER = 2,
 } transaction_type_e;
 
 /**
@@ -140,6 +152,13 @@ typedef struct {
     transaction_basic_t basic;
     /** The type of the parsed transaction. */
     transaction_type_e type;
-    /** Only when transaction_t.type == #MPC_TRANSFER */
-    mpc_transfer_transaction_type_s mpc_transfer;
+    /**
+     * Variant data based upon transaction_t.type
+     */
+    union {
+        /** Only when transaction_t.type == #MPC_TRANSFER */
+        mpc_transfer_transaction_type_s mpc_transfer;
+        /** Only when transaction_t.type == #GENERIC_TRANSACTION */
+        parser_status_e rpc_parsing_error;
+    };
 } transaction_t;

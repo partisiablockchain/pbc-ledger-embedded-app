@@ -27,7 +27,9 @@
 #include "../status_words.h"
 
 int helper_send_response_address() {
-    return io_send_response_pointer(G_context.pk_info.address.raw_bytes, sizeof(G_context.pk_info.address.raw_bytes), SW_OK);
+    return io_send_response_pointer(G_context.pk_info.address.raw_bytes,
+                                    sizeof(G_context.pk_info.address.raw_bytes),
+                                    SW_OK);
 }
 
 int helper_send_response_sig(void) {

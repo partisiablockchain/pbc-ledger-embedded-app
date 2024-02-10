@@ -51,7 +51,7 @@ int handler_get_address(buffer_t *cdata, bool display) {
                                                  G_context.bip32_path_len,
                                                  raw_pubkey,
                                                  NULL,
-                                                 CX_SHA512); // Doesn't matter
+                                                 CX_SHA512);  // Doesn't matter
 
     if (error != CX_OK) {
         return io_send_sw(error);
