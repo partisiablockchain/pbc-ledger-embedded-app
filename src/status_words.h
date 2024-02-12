@@ -49,11 +49,6 @@
  */
 #define SW_INVALID_CHAIN_ID 0xB005
 /**
- * Status word for fail of transaction parsing.
- */
-#define SW_TX_PARSING_FAIL                    0xB020
-#define SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA 0xB02F
-/**
  * Status word for fail of transaction hash.
  */
 #define SW_TX_HASH_FAIL 0xB006
@@ -69,3 +64,12 @@
  * Status word for fail to display chain id.
  */
 #define SW_DISPLAY_CHAIN_ID_FAIL 0xB009
+/**
+ * Status word for failing to parse a transaction due to missing data.
+ */
+#define SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA 0xB00A
+/**
+ * Basis status word for failure to parse a transaction. Is or'ed with
+ * parser_status_e to determine the specific error.
+ */
+#define SW_TX_PARSING_FAIL 0xB100

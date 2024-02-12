@@ -11,17 +11,21 @@ CLA: int = 0xE0
 
 
 class P1(IntEnum):
-    # Parameter 1 for first APDU number.
-    P1_START = 0x00
-    # Parameter 1 for screen confirmation for GET_ADDRESS.
+    # SIGN_TX: Parameter 1 indicating first chunk
+    P1_FIRST_CHUNK = 0x00
+    # SIGN_TX: Parameter 1 indicating first chunk
+    P1_NOT_FIRST_CHUNK = 0x01
+    # GET_ADDRESS: Parameter 1 to skip screen confirmation
+    P1_SILENT = 0x00
+    # GET_ADDRESS: Parameter 1 for screen confirmation
     P1_CONFIRM = 0x01
 
 
 class P2(IntEnum):
-    # Parameter 2 for last APDU to receive.
-    P2_LAST = 0x00
-    # Parameter 2 for more APDU to receive.
-    P2_MORE = 0x80
+    # Parameter 2 for last chunk to receive.
+    P2_LAST_CHUNK = 0x00
+    # Parameter 2 for more chunk to receive.
+    P2_NOT_LAST_CHUNK = 0x80
 
 
 class InsType(IntEnum):
@@ -61,29 +65,29 @@ class PbcCommandSender:
         return self.backend.exchange(
             cla=0xB0,  # specific CLA for BOLOS
             ins=0x01,  # specific INS for get_app_and_version
-            p1=P1.P1_START,
-            p2=P2.P2_LAST,
+            p1=P1.P1_FIRST_CHUNK,
+            p2=P2.P2_LAST_CHUNK,
             data=b"")
 
     def get_version(self) -> RAPDU:
         return self.backend.exchange(cla=CLA,
                                      ins=InsType.GET_VERSION,
-                                     p1=P1.P1_START,
-                                     p2=P2.P2_LAST,
+                                     p1=P1.P1_FIRST_CHUNK,
+                                     p2=P2.P2_LAST_CHUNK,
                                      data=b"")
 
     def get_app_name(self) -> RAPDU:
         return self.backend.exchange(cla=CLA,
                                      ins=InsType.GET_APP_NAME,
-                                     p1=P1.P1_START,
-                                     p2=P2.P2_LAST,
+                                     p1=P1.P1_FIRST_CHUNK,
+                                     p2=P2.P2_LAST_CHUNK,
                                      data=b"")
 
     def get_address(self, path: str) -> RAPDU:
         return self.backend.exchange(cla=CLA,
                                      ins=InsType.GET_ADDRESS,
-                                     p1=P1.P1_START,
-                                     p2=P2.P2_LAST,
+                                     p1=P1.P1_SILENT,
+                                     p2=P2.P2_LAST_CHUNK,
                                      data=pack_derivation_path(path))
 
     @contextmanager
@@ -93,7 +97,7 @@ class PbcCommandSender:
                 cla=CLA,
                 ins=InsType.GET_ADDRESS,
                 p1=P1.P1_CONFIRM,
-                p2=P2.P2_LAST,
+                p2=P2.P2_LAST_CHUNK,
                 data=pack_derivation_path(path)) as response:
             yield response
 
@@ -110,24 +114,22 @@ class PbcCommandSender:
 
         self.backend.exchange(cla=CLA,
                               ins=InsType.SIGN_TX,
-                              p1=P1.P1_START,
-                              p2=P2.P2_MORE,
+                              p1=P1.P1_FIRST_CHUNK,
+                              p2=P2.P2_NOT_LAST_CHUNK,
                               data=initial_packet)
         messages = split_message(transaction, MAX_APDU_LEN)
-        idx: int = P1.P1_START + 1
 
         for msg in messages[:-1]:
             self.backend.exchange(cla=CLA,
                                   ins=InsType.SIGN_TX,
-                                  p1=idx,
-                                  p2=P2.P2_MORE,
+                                  p1=P1.P1_NOT_FIRST_CHUNK,
+                                  p2=P2.P2_NOT_LAST_CHUNK,
                                   data=msg)
-            idx += 1
 
         with self.backend.exchange_async(cla=CLA,
                                          ins=InsType.SIGN_TX,
-                                         p1=idx,
-                                         p2=P2.P2_LAST,
+                                         p1=P1.P1_NOT_FIRST_CHUNK,
+                                         p2=P2.P2_LAST_CHUNK,
                                          data=messages[-1]) as response:
             yield response
 
