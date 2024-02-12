@@ -69,11 +69,11 @@ int apdu_dispatcher(const command_t *cmd) {
 
             return handler_get_address(&buf, (bool) cmd->p1);
         case SIGN_TX:
-            if (cmd->p1 == P1_START && cmd->p2 != P2_MORE) {
+            if (cmd->p1 == P1_FIRST_CHUNK && cmd->p2 != P2_NOT_LAST_CHUNK) {
                 return io_send_sw(SW_WRONG_P1P2);
-            } else if (cmd->p1 > P1_MAX) {
+            } else if (cmd->p1 != P1_FIRST_CHUNK && cmd->p1 != P1_NOT_FIRST_CHUNK) {
                 return io_send_sw(SW_WRONG_P1P2);
-            } else if (cmd->p2 != P2_LAST && cmd->p2 != P2_MORE) {
+            } else if (cmd->p2 != P2_LAST_CHUNK && cmd->p2 != P2_NOT_LAST_CHUNK) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
@@ -85,7 +85,9 @@ int apdu_dispatcher(const command_t *cmd) {
             buf.size = cmd->lc;
             buf.offset = 0;
 
-            return handler_sign_tx(&buf, cmd->p1, (bool) (cmd->p2 & P2_MORE));
+            bool first_chunk = !((bool) (cmd->p1 & P1_NOT_FIRST_CHUNK));
+            bool not_last_chunk = (bool) (cmd->p2 & P2_NOT_LAST_CHUNK);
+            return handler_sign_tx(&buf, first_chunk, not_last_chunk);
         default:
             return io_send_sw(SW_INS_NOT_SUPPORTED);
     }
