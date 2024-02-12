@@ -38,7 +38,7 @@
 #include "../transaction/types.h"
 #include "../menu.h"
 
-static nbgl_layoutTagValue_t pairs[4];
+static nbgl_layoutTagValue_t pairs[5];
 static nbgl_layoutTagValueList_t pairList;
 static nbgl_pageInfoLongPress_t infoLongPress;
 
@@ -70,10 +70,12 @@ static void review_choice(bool confirm) {
 
 static void review_blind_transaction(void) {
     // Setup data to display
-    pairs[0].item = "Fees";
-    pairs[0].value = g_gas_cost;
-    pairs[1].item = "Contract";
-    pairs[1].value = g_address;
+    pairs[0].item = "Chain";
+    pairs[0].value = g_chain_id;
+    pairs[2].item = "Contract";
+    pairs[2].value = g_address;
+    pairs[1].item = "Fees";
+    pairs[1].value = g_gas_cost;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
@@ -90,18 +92,20 @@ static void review_blind_transaction(void) {
 
 static void review_mpc_transfer(void) {
     // Setup data to display
-    pairs[0].item = "Amount";
-    pairs[0].value = g_transfer_amount;
-    pairs[1].item = "Fees";
-    pairs[1].value = g_gas_cost;
-    pairs[2].item = "To";
-    pairs[2].value = g_address;
+    pairs[0].item = "Chain";
+    pairs[0].value = g_chain_id;
+    pairs[1].item = "To";
+    pairs[1].value = g_address;
+    pairs[2].item = "Amount";
+    pairs[2].value = g_transfer_amount;
     pairs[3].item = "Memo";
     pairs[3].value = g_memo;
+    pairs[4].item = "Fees";
+    pairs[4].value = g_gas_cost;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 4;
+    pairList.nbPairs = 5;
     pairList.pairs = pairs;
 
     // Info long press
@@ -130,6 +134,11 @@ int ui_display_transaction() {
                             0)) {
         return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
     };
+
+    // Update chain_id
+    if (!set_g_chain_id(&G_context.tx_info.chain_id)) {
+        return io_send_sw(SW_DISPLAY_CHAIN_ID_FAIL);
+    }
 
     // Either setup clear-sign flows or blind-sign flows.
     if (G_context.tx_info.transaction.type == MPC_TRANSFER) {

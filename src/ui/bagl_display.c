@@ -157,8 +157,14 @@ UX_STEP_NOCB(ux_display_step_memo,
                  .title = "Memo",
                  .text = g_memo,
              });
+UX_STEP_NOCB(ux_display_step_chain_id,
+             bnnn_paging,
+             {
+                 .title = "Chain",
+                 .text = g_chain_id,
+             });
 
-#define MAX_NUM_STEPS 8
+#define MAX_NUM_STEPS 9
 
 // FLOW to display transaction information:
 // #1 screen : eye icon + "Review Transaction"
@@ -180,6 +186,12 @@ int ui_display_transaction(void) {
 
     // Display initial
     ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
+
+    // Display chain id
+    if (!set_g_chain_id(&G_context.tx_info.chain_id)) {
+        return io_send_sw(SW_DISPLAY_CHAIN_ID_FAIL);
+    }
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_chain_id;
 
     // Either setup clear-sign flows or blind-sign flows.
     if (G_context.tx_info.transaction.type == MPC_TRANSFER) {

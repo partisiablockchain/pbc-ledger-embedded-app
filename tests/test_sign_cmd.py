@@ -6,7 +6,7 @@ from application_client.command_sender import PbcCommandSender, Errors
 from application_client.response_unpacker import unpack_get_address_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
 from ragger.navigator import NavInsID, NavIns
-from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_ID
+from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_IDS
 import transaction_examples
 
 
@@ -70,10 +70,18 @@ def move_to_end_and_reject(firmware, navigator, test_name):
             ], "Blind signing is disabled", ROOT_SCREENSHOT_PATH, test_name)
 
 
+def name_for_sign_test(base_test_name, transaction_name, chain_name):
+    return '{}-{}-{}'.format(base_test_name, transaction_name,
+                             chain_name.decode('utf-8'))
+
+
 @pytest.mark.parametrize("transaction_name,transaction",
                          transaction_examples.BLIND_TRANSACTIONS)
+@pytest.mark.parametrize("chain_id", CHAIN_IDS)
 def test_sign_blind_transaction(firmware, backend, navigator, test_name,
-                                transaction_name, transaction):
+                                transaction_name, transaction, chain_id):
+    test_name = name_for_sign_test(test_name, transaction_name, chain_id)
+
     client = PbcCommandSender(backend)
 
     rapdu = client.get_address(path=KEY_PATH)
@@ -86,26 +94,26 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     with client.sign_tx(path=KEY_PATH,
                         transaction=transaction_bytes,
-                        chain_id=CHAIN_ID):
+                        chain_id=chain_id):
         # Hacky check for blind transactions
         while not navigator._backend.compare_screen_with_text('Review'):
             time.sleep(0.1)
 
         # Approve
-        move_to_end_and_approve(firmware, navigator,
-                                '{}-{}'.format(test_name, transaction_name))
+        move_to_end_and_approve(firmware, navigator, test_name)
 
     response = client.get_async_response().data
     rs_signature = unpack_sign_tx_response(response)
     assert transaction.verify_signature_with_address(address, rs_signature,
-                                                     CHAIN_ID)
+                                                     chain_id)
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
                          transaction_examples.BLIND_TRANSACTIONS)
+@pytest.mark.parametrize("chain_id", CHAIN_IDS)
 def test_block_blind_sign(firmware, backend, navigator, test_name,
-                          transaction_name, transaction):
-    test_name = '{}-{}'.format(test_name, transaction_name)
+                          transaction_name, transaction, chain_id):
+    test_name = name_for_sign_test(test_name, transaction_name, chain_id)
 
     client = PbcCommandSender(backend)
 
@@ -118,7 +126,7 @@ def test_block_blind_sign(firmware, backend, navigator, test_name,
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_tx(path=KEY_PATH,
                             transaction=transaction_bytes,
-                            chain_id=CHAIN_ID):
+                            chain_id=chain_id):
             # Hacky check for blind transactions
             while not navigator._backend.compare_screen_with_text('Review'):
                 time.sleep(0.1)
@@ -131,8 +139,11 @@ def test_block_blind_sign(firmware, backend, navigator, test_name,
 
 @pytest.mark.parametrize("transaction_name,transaction",
                          transaction_examples.MPC_TRANSFER_TRANSACTIONS)
+@pytest.mark.parametrize("chain_id", CHAIN_IDS)
 def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
-                           transaction_name, transaction):
+                           transaction_name, transaction, chain_id):
+    test_name = name_for_sign_test(test_name, transaction_name, chain_id)
+
     client = PbcCommandSender(backend)
 
     rapdu = client.get_address(path=KEY_PATH)
@@ -143,20 +154,19 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
     # Blind signing disabled
     with client.sign_tx(path=KEY_PATH,
                         transaction=transaction_bytes,
-                        chain_id=CHAIN_ID):
+                        chain_id=chain_id):
         # Hacky check for blind transactions
         time.sleep(1.0)
         assert navigator._backend.compare_screen_with_text(
             'Review'), 'First screen must be Review'
 
         # Approve
-        move_to_end_and_approve(firmware, navigator,
-                                '{}-{}'.format(test_name, transaction_name))
+        move_to_end_and_approve(firmware, navigator, test_name)
 
     response = client.get_async_response().data
     rs_signature = unpack_sign_tx_response(response)
     assert transaction.verify_signature_with_address(address, rs_signature,
-                                                     CHAIN_ID)
+                                                     chain_id)
 
 
 # Transaction signature refused test
@@ -164,6 +174,7 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 def test_sign_tx_refused(firmware, backend, navigator, test_name):
     # Use the app interface instead of raw interface
     client = PbcCommandSender(backend)
+    chain_id = CHAIN_IDS[0]
 
     rapdu = client.get_address(path=KEY_PATH)
     address = unpack_get_address_response(rapdu.data)
@@ -175,7 +186,7 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
         with pytest.raises(ExceptionRAPDU) as e:
             with client.sign_tx(path=KEY_PATH,
                                 transaction=transaction_bytes,
-                                chain_id=CHAIN_ID):
+                                chain_id=chain_id):
                 move_to_end_and_reject(firmware, navigator, test_name)
 
         # Assert that we have received a refusal
@@ -192,7 +203,7 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             with pytest.raises(ExceptionRAPDU) as e:
                 with client.sign_tx(path=KEY_PATH,
                                     transaction=transaction_bytes,
-                                    chain_id=CHAIN_ID):
+                                    chain_id=chain_id):
                     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                                    test_name + f"/part{i}",
                                                    instructions)
