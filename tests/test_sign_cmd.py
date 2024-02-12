@@ -49,8 +49,25 @@ def move_to_end_and_approve(firmware, navigator, test_name):
         navigator.navigate_until_text_and_compare(
             NavInsID.USE_CASE_REVIEW_TAP, [
                 NavInsID.USE_CASE_REVIEW_CONFIRM,
-                NavInsID.USE_CASE_STATUS_DISMISS
+                NavInsID.USE_CASE_STATUS_DISMISS,
             ], "Hold to sign", ROOT_SCREENSHOT_PATH, test_name)
+
+
+def move_to_end_and_reject(firmware, navigator, test_name):
+    # Validate the on-screen request by performing the navigation appropriate for this device
+    if firmware.device.startswith("nano"):
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
+                                                  "Reject",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
+
+    else:
+        navigator.navigate_until_text_and_compare(
+            NavInsID.USE_CASE_REVIEW_TAP, [
+                NavInsID.USE_CASE_CHOICE_CONFIRM,
+                NavInsID.USE_CASE_STATUS_DISMISS,
+            ], "Blind signing is disabled", ROOT_SCREENSHOT_PATH, test_name)
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
@@ -64,6 +81,7 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
     transaction_bytes = transaction.serialize()
 
+    # enable blind signing
     enable_blind_sign(firmware, navigator)
 
     with client.sign_tx(path=KEY_PATH,
@@ -84,6 +102,34 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
+                         transaction_examples.BLIND_TRANSACTIONS)
+def test_block_blind_sign(firmware, backend, navigator, test_name,
+                          transaction_name, transaction):
+    test_name = '{}-{}'.format(test_name, transaction_name)
+
+    client = PbcCommandSender(backend)
+
+    rapdu = client.get_address(path=KEY_PATH)
+    address = unpack_get_address_response(rapdu.data)
+
+    transaction_bytes = transaction.serialize()
+
+    # Blind signing disabled
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_tx(path=KEY_PATH,
+                            transaction=transaction_bytes,
+                            chain_id=CHAIN_ID):
+            # Hacky check for blind transactions
+            while not navigator._backend.compare_screen_with_text('Review'):
+                time.sleep(0.1)
+
+            move_to_end_and_reject(firmware, navigator, test_name)
+    # Assert that we have received a refusal
+    assert e.value.status == Errors.SW_DENY
+    assert len(e.value.data) == 0
+
+
+@pytest.mark.parametrize("transaction_name,transaction",
                          transaction_examples.MPC_TRANSFER_TRANSACTIONS)
 def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
                            transaction_name, transaction):
@@ -94,6 +140,7 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
 
     transaction_bytes = transaction.serialize()
 
+    # Blind signing disabled
     with client.sign_tx(path=KEY_PATH,
                         transaction=transaction_bytes,
                         chain_id=CHAIN_ID):
@@ -129,9 +176,7 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             with client.sign_tx(path=KEY_PATH,
                                 transaction=transaction_bytes,
                                 chain_id=CHAIN_ID):
-                navigator.navigate_until_text_and_compare(
-                    NavInsID.RIGHT_CLICK, [NavInsID.BOTH_CLICK], "Reject",
-                    ROOT_SCREENSHOT_PATH, test_name)
+                move_to_end_and_reject(firmware, navigator, test_name)
 
         # Assert that we have received a refusal
         assert e.value.status == Errors.SW_DENY
