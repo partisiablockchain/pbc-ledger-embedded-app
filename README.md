@@ -6,10 +6,10 @@
 
 Ledger Application for interacting with Partisia Blockchain.
 
+## Changes
+
 Based on [Ledger app-boilerplate](https://github.com/LedgerHQ/app-boilerplate),
 commit `7d1c3c39d8c7d3567c5a6650fe339a8e5160b497`.
-
-## Changes from Ledger App Boilerplate
 
 - Targets Partisia Blockchain, with clear signing support for MPC Token, and blind signing support for all other transactions.
 - Adjusted rest of the code base to fit this target, including, but not limited
