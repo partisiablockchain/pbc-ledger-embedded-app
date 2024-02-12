@@ -18,6 +18,8 @@ extern char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 extern char g_address[2 * ADDRESS_LEN + 1];
 // Text buffer for MPC transfer memo
 extern char g_memo[MEMO_MAX_LENGTH + 1];
+// Text buffer for Chain Id
+extern char g_chain_id[CHAIN_ID_MAX_LENGTH + 1];
 
 /*** Common UI methods ***/
 
@@ -49,3 +51,11 @@ bool set_g_token_amount(char* out,
  */
 WARN_UNUSED_RESULT
 bool set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer);
+
+/**
+ * Replaces the fields for displaying the chain id, with the given chain id.
+ *
+ * @return false when any field failed to be displayed.
+ */
+WARN_UNUSED_RESULT
+bool set_g_chain_id(chain_id_t* chain_id);

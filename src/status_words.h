@@ -61,9 +61,13 @@
  */
 #define SW_SIGNATURE_FAIL 0xB008
 /**
+ * Status word for fail to display chain id.
+ */
+#define SW_DISPLAY_CHAIN_ID_FAIL 0xB009
+/**
  * Status word for failing to parse a transaction due to missing data.
  */
-#define SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA 0xB009
+#define SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA 0xB00A
 /**
  * Basis status word for failure to parse a transaction. Is or'ed with
  * parser_status_e to determine the specific error.
