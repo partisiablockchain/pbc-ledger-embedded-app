@@ -2,6 +2,8 @@
 
 # Partisia Blockchain Ledger Embedded Application
 
+![](./documentation/images/ManagerIcon.svg)
+
 Ledger Application for interacting with Partisia Blockchain.
 
 Based on [Ledger app-boilerplate](https://github.com/LedgerHQ/app-boilerplate),
