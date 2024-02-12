@@ -1,9 +1,8 @@
+![Partisia Blockchain SVG Logo](./documentation/images/ManagerIcon.svg)
 [![Ensure compliance with Ledger guidelines](https://github.com/partisiablockchain/pbc-ledger-embedded-app/actions/workflows/guidelines_enforcer.yml/badge.svg)](https://github.com/partisiablockchain/pbc-ledger-embedded-app/actions/workflows/guidelines_enforcer.yml)
 [![Build and run functional tests using ragger through reusable workflow](https://github.com/partisiablockchain/pbc-ledger-embedded-app/actions/workflows/build_and_functional_tests.yml/badge.svg)](https://github.com/partisiablockchain/pbc-ledger-embedded-app/actions/workflows/build_and_functional_tests.yml)
 
 # Partisia Blockchain Ledger Embedded Application
-
-![](./documentation/images/ManagerIcon.svg)
 
 Ledger Application for interacting with Partisia Blockchain.
 
