@@ -75,6 +75,19 @@ def name_for_sign_test(base_test_name, transaction_name, chain_name):
                              chain_name.decode('utf-8'))
 
 
+def wait_for_first_screen_of_review_flow(navigator, timeout=10):
+    '''Will wait for the screen to change to one that includes the word
+    "Review", or time out after 10 seconds (by default).
+
+    The first screen of review UI flows will always contain the word "Review".
+    '''
+    time_left = timeout
+    while not navigator._backend.compare_screen_with_text('Review'):
+        time.sleep(0.1)
+        time_left -= 0.1
+        assert time_left > 0, 'timeout when waiting for the first screen (First screen must include word "Review")'
+
+
 @pytest.mark.parametrize("transaction_name,transaction",
                          transaction_examples.BLIND_TRANSACTIONS)
 @pytest.mark.parametrize("chain_id", CHAIN_IDS)
@@ -95,9 +108,8 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
     with client.sign_tx(path=KEY_PATH,
                         transaction=transaction_bytes,
                         chain_id=chain_id):
-        # Hacky check for blind transactions
-        while not navigator._backend.compare_screen_with_text('Review'):
-            time.sleep(0.1)
+        # Wait for first screen of the application
+        wait_for_first_screen_of_review_flow(navigator)
 
         # Approve
         move_to_end_and_approve(firmware, navigator, test_name)
@@ -127,9 +139,8 @@ def test_block_blind_sign(firmware, backend, navigator, test_name,
         with client.sign_tx(path=KEY_PATH,
                             transaction=transaction_bytes,
                             chain_id=chain_id):
-            # Hacky check for blind transactions
-            while not navigator._backend.compare_screen_with_text('Review'):
-                time.sleep(0.1)
+            # Wait for first screen of the application
+            wait_for_first_screen_of_review_flow(navigator)
 
             move_to_end_and_reject(firmware, navigator, test_name)
     # Assert that we have received a refusal
@@ -155,10 +166,8 @@ def test_sign_mpc_transfer(firmware, backend, navigator, test_name,
     with client.sign_tx(path=KEY_PATH,
                         transaction=transaction_bytes,
                         chain_id=chain_id):
-        # Hacky check for blind transactions
-        time.sleep(1.0)
-        assert navigator._backend.compare_screen_with_text(
-            'Review'), 'First screen must be Review'
+        # Wait for first screen of the application
+        wait_for_first_screen_of_review_flow(navigator)
 
         # Approve
         move_to_end_and_approve(firmware, navigator, test_name)
