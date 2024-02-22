@@ -51,10 +51,7 @@ class Errors(IntEnum):
     SW_TX_HASH_FAIL = 0xB006
     SW_BAD_STATE = 0xB007
     SW_SIGNATURE_FAIL = 0xB008
-
-
-def split_message(message: bytes, max_size: int) -> List[bytes]:
-    return [message[x:x + max_size] for x in range(0, len(message), max_size)]
+    SW_TX_PARSING_FAIL_EXPECTED_LESS_DATA = 0xB00B
 
 
 @dataclasses.dataclass(frozen=True)
@@ -64,6 +61,40 @@ class ApduPacket:
     p2: P2
     data: bytes
     cla: int = CLA
+
+    def replace(self, **kwargs):
+        return dataclasses.replace(self, **kwargs)
+
+
+def split_message(message: bytes, max_size: int) -> List[bytes]:
+    return [message[x:x + max_size] for x in range(0, len(message), max_size)]
+
+
+def create_apdu_packets_from_contents(
+        ins: InsType, packet_contents: list[bytes]) -> list[ApduPacket]:
+    packets = []
+    for packet_idx, packet_content in enumerate(packet_contents):
+        p1 = P1.P1_NOT_FIRST_CHUNK if packet_idx != 0 else P1.P1_FIRST_CHUNK
+        p2 = P2.P2_NOT_LAST_CHUNK if packet_idx != len(
+            packet_contents) - 1 else P2.P2_LAST_CHUNK
+
+        packets.append(ApduPacket(ins, p1, p2, packet_content))
+    return packets
+
+
+def sign_tx_packets(path: str, transaction: bytes,
+                    chain_id: bytes) -> list[ApduPacket]:
+
+    # Initial packet includes key path and chain id
+    initial_packet_contents = b''.join([
+        pack_derivation_path(path),
+        len(chain_id).to_bytes(4, byteorder="big"),
+        chain_id,
+    ])
+
+    packet_contents = [initial_packet_contents] + split_message(
+        transaction, MAX_APDU_LEN)
+    return create_apdu_packets_from_contents(InsType.SIGN_TX, packet_contents)
 
 
 class PbcCommandSender:
@@ -100,6 +131,7 @@ class PbcCommandSender:
                                      p2=P2.P2_LAST_CHUNK,
                                      data=pack_derivation_path(path))
 
+    @contextmanager
     def send_packets(self,
                      packets: list[ApduPacket]) -> Generator[None, None, None]:
         '''Capable of sending raw packets and returning a response'''
@@ -124,34 +156,9 @@ class PbcCommandSender:
     @contextmanager
     def sign_tx(self, path: str, transaction: bytes,
                 chain_id: bytes) -> Generator[None, None, None]:
-
-        # Initial packet includes key path and chain id
-        transaction_chunks = split_message(transaction, MAX_APDU_LEN)
-
-        initial_packet = b''.join([
-            pack_derivation_path(path),
-            len(chain_id).to_bytes(4, byteorder="big"),
-            chain_id,
-        ])
-
-        # Construct packets.
-        packets = [
-            ApduPacket(
-                ins=InsType.SIGN_TX,
-                p1=P1.P1_FIRST_CHUNK,
-                p2=P2.P2_NOT_LAST_CHUNK,
-                data=initial_packet,
-            ),
-        ]
-        for idx, transaction_chunk in enumerate(transaction_chunks):
-            p2 = P2.P2_NOT_LAST_CHUNK if idx != len(
-                transaction_chunks) - 1 else P2.P2_LAST_CHUNK
-            packets.append(
-                ApduPacket(InsType.SIGN_TX, P1.P1_NOT_FIRST_CHUNK, p2,
-                           transaction_chunk))
-
-        # Send packets
-        yield from self.send_packets(packets)
+        with self.send_packets(sign_tx_packets(path, transaction,
+                                               chain_id)) as response:
+            yield response
 
     def get_async_response(self) -> Optional[RAPDU]:
         return self.backend.last_async_response

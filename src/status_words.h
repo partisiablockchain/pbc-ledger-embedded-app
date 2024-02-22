@@ -69,6 +69,10 @@
  */
 #define SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA 0xB00A
 /**
+ * Status word for failing by receiving more data than expected.
+ */
+#define SW_TX_PARSING_FAIL_EXPECTED_LESS_DATA 0xB00B
+/**
  * Basis status word for failure to parse a transaction. Is or'ed with
  * parser_status_e to determine the specific error.
  */
