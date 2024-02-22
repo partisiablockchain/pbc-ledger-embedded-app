@@ -1,3 +1,4 @@
+import dataclasses
 from enum import IntEnum
 from typing import Generator, List, Optional
 from contextlib import contextmanager
@@ -13,7 +14,7 @@ CLA: int = 0xE0
 class P1(IntEnum):
     # SIGN_TX: Parameter 1 indicating first chunk
     P1_FIRST_CHUNK = 0x00
-    # SIGN_TX: Parameter 1 indicating first chunk
+    # SIGN_TX: Parameter 1 indicating non-first chunk.
     P1_NOT_FIRST_CHUNK = 0x01
     # GET_ADDRESS: Parameter 1 to skip screen confirmation
     P1_SILENT = 0x00
@@ -56,6 +57,15 @@ def split_message(message: bytes, max_size: int) -> List[bytes]:
     return [message[x:x + max_size] for x in range(0, len(message), max_size)]
 
 
+@dataclasses.dataclass(frozen=True)
+class ApduPacket:
+    ins: InsType
+    p1: P1
+    p2: P2
+    data: bytes
+    cla: int = CLA
+
+
 class PbcCommandSender:
 
     def __init__(self, backend: BackendInterface) -> None:
@@ -90,6 +100,16 @@ class PbcCommandSender:
                                      p2=P2.P2_LAST_CHUNK,
                                      data=pack_derivation_path(path))
 
+    def send_packets(self,
+                     packets: list[ApduPacket]) -> Generator[None, None, None]:
+        '''Capable of sending raw packets and returning a response'''
+        for packet in packets[:-1]:
+            self.backend.exchange(**dataclasses.asdict(packet))
+
+        with self.backend.exchange_async(
+                **dataclasses.asdict(packets[-1])) as response:
+            yield response
+
     @contextmanager
     def get_address_with_confirmation(self,
                                       path: str) -> Generator[None, None, None]:
@@ -106,32 +126,32 @@ class PbcCommandSender:
                 chain_id: bytes) -> Generator[None, None, None]:
 
         # Initial packet includes key path and chain id
+        transaction_chunks = split_message(transaction, MAX_APDU_LEN)
+
         initial_packet = b''.join([
             pack_derivation_path(path),
             len(chain_id).to_bytes(4, byteorder="big"),
             chain_id,
         ])
 
-        self.backend.exchange(cla=CLA,
-                              ins=InsType.SIGN_TX,
-                              p1=P1.P1_FIRST_CHUNK,
-                              p2=P2.P2_NOT_LAST_CHUNK,
-                              data=initial_packet)
-        messages = split_message(transaction, MAX_APDU_LEN)
+        # Construct packets.
+        packets = [
+            ApduPacket(
+                ins=InsType.SIGN_TX,
+                p1=P1.P1_FIRST_CHUNK,
+                p2=P2.P2_NOT_LAST_CHUNK,
+                data=initial_packet,
+            ),
+        ]
+        for idx, transaction_chunk in enumerate(transaction_chunks):
+            p2 = P2.P2_NOT_LAST_CHUNK if idx != len(
+                transaction_chunks) - 1 else P2.P2_LAST_CHUNK
+            packets.append(
+                ApduPacket(InsType.SIGN_TX, P1.P1_NOT_FIRST_CHUNK, p2,
+                           transaction_chunk))
 
-        for msg in messages[:-1]:
-            self.backend.exchange(cla=CLA,
-                                  ins=InsType.SIGN_TX,
-                                  p1=P1.P1_NOT_FIRST_CHUNK,
-                                  p2=P2.P2_NOT_LAST_CHUNK,
-                                  data=msg)
-
-        with self.backend.exchange_async(cla=CLA,
-                                         ins=InsType.SIGN_TX,
-                                         p1=P1.P1_NOT_FIRST_CHUNK,
-                                         p2=P2.P2_LAST_CHUNK,
-                                         data=messages[-1]) as response:
-            yield response
+        # Send packets
+        yield from self.send_packets(packets)
 
     def get_async_response(self) -> Optional[RAPDU]:
         return self.backend.last_async_response
