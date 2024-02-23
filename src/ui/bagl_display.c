@@ -181,55 +181,7 @@ int ui_display_transaction(void) {
         return io_send_sw(SW_BAD_STATE);
     }
 
-    uint8_t ux_flow_idx = 0;
-    bool prevent_approval_due_to_blind_signing = false;
-
-    // Display initial
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
-
-    // Display chain id
-    if (!set_g_chain_id(&G_context.tx_info.chain_id)) {
-        return io_send_sw(SW_DISPLAY_CHAIN_ID_FAIL);
-    }
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_chain_id;
-
-    // Either setup clear-sign flows or blind-sign flows.
-    if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
-        // MPC Transfer
-
-        snprintf(g_review_text, sizeof(g_review_text), "MPC Transfer");
-
-        // Display recipient
-        snprintf(g_address_title, sizeof(g_address_title), "Recipient");
-
-        if (!set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer)) {
-            return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
-        }
-
-        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-
-        // Display token transfer amount
-        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
-
-    } else {
-        // Blind sign
-        snprintf(g_review_text, sizeof(g_review_text), "Transaction");
-
-        // Warning
-        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_blind_sign_warning;
-
-        // Display contract address
-        snprintf(g_address_title, sizeof(g_address_title), "Contract");
-        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-        if (!set_g_address(&G_context.tx_info.transaction.basic.contract_address)) {
-            return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
-        }
-
-        prevent_approval_due_to_blind_signing = !N_storage.allow_blind_signing;
-    }
-
-    // Display gas cost
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
+    // Update gas cost
     if (!set_g_token_amount(g_gas_cost,
                             sizeof(g_gas_cost),
                             "Gas",
@@ -238,7 +190,51 @@ int ui_display_transaction(void) {
         return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
     }
 
+    // Update chain id
+    if (!set_g_chain_id(&G_context.tx_info.chain_id)) {
+        return io_send_sw(SW_DISPLAY_CHAIN_ID_FAIL);
+    }
+
+    uint8_t ux_flow_idx = 0;
+    bool prevent_approval_due_to_blind_signing = false;
+
+    // Display initial
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_chain_id;
+
+    // Either setup clear-sign flows or blind-sign flows.
+    if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
+        // MPC Transfer
+
+        if (!set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer)) {
+            return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
+        }
+
+        snprintf(g_review_text, sizeof(g_review_text), "MPC Transfer");
+        snprintf(g_address_title, sizeof(g_address_title), "Recipient");
+
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
+
+    } else {
+        // Blind sign
+
+        if (!set_g_address(&G_context.tx_info.transaction.basic.contract_address)) {
+            return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+        }
+
+        snprintf(g_review_text, sizeof(g_review_text), "Transaction");
+        snprintf(g_address_title, sizeof(g_address_title), "Contract");
+
+        // Warning
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_blind_sign_warning;
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
+
+        prevent_approval_due_to_blind_signing = !N_storage.allow_blind_signing;
+    }
+
     // Setup UI flow
+    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_gas_cost;
     if (prevent_approval_due_to_blind_signing) {
         ux_display_transaction_flow[ux_flow_idx++] =
             &ux_display_step_prevent_approve_due_to_blind_signing;
