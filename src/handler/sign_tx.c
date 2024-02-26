@@ -93,6 +93,7 @@ int handler_sign_tx(buffer_t *chunk_data, bool first_chunk, bool anymore_blocks_
             // Transaction parser expected more data, but there is no more data.
             return io_send_sw(SW_TX_PARSING_FAIL_EXPECTED_MORE_DATA);
         } else if (status_parsing == PARSING_DONE && anymore_blocks_after_this_one) {
+            // Transaction parser is done, but there is more data to process.
             return io_send_sw(SW_TX_PARSING_FAIL_EXPECTED_LESS_DATA);
         }
 
