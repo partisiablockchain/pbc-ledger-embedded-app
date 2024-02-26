@@ -2,8 +2,6 @@
 
 #include "parser.h"
 
-#include "../types.h"
-
 /** SIGN_TX: Parameter 1 to indicate the first APDU chunk. */
 #define P1_FIRST_CHUNK 0x00
 /** SIGN_TX: Parameter 1 to indicate any non-first APDU chunks. */

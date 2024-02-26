@@ -15,15 +15,9 @@
  *  limitations under the License.
  *****************************************************************************/
 
-#include <stdint.h>  // uint*_t
-#include <string.h>  // memset, explicit_bzero
-
 #include "os.h"
-#include "ux.h"
 
-#include "types.h"
 #include "globals.h"
-#include "io.h"
 #include "status_words.h"
 #include "ui/menu.h"
 #include "apdu/dispatcher.h"
