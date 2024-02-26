@@ -73,6 +73,10 @@
  */
 #define SW_TX_PARSING_FAIL_EXPECTED_LESS_DATA 0xB00B
 /**
+ * Status word for failing to transmit data response.
+ */
+#define SW_RESPONSE_FAILURE 0xB00C
+/**
  * Basis status word for failure to parse a transaction. Is or'ed with
  * parser_status_e to determine the specific error.
  */

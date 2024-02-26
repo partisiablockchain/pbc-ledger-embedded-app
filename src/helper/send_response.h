@@ -1,8 +1,5 @@
 #pragma once
 
-#include "os.h"
-#include "macros.h"
-
 /**
  * Helper to send APDU response with blockchain address.
  *

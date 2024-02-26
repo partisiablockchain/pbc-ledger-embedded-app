@@ -17,6 +17,7 @@
 
 #include <stdbool.h>  // bool
 
+#include "io.h"  // io_send_sw
 #include "crypto_helpers.h"
 
 #include "validate.h"
@@ -27,7 +28,10 @@
 
 void validate_address(bool choice) {
     if (choice) {
-        helper_send_response_address();
+        int response_status = helper_send_response_address();
+        if (response_status < 0) {
+            io_send_sw(SW_RESPONSE_FAILURE);
+        }
     } else {
         io_send_sw(SW_DENY);
     }
@@ -58,13 +62,16 @@ static int crypto_sign_message(void) {
 
 void validate_transaction(bool choice) {
     if (choice) {
-        G_context.state = STATE_APPROVED;
-
         if (crypto_sign_message() != 0) {
             G_context.state = STATE_NONE;
             io_send_sw(SW_SIGNATURE_FAIL);
         } else {
-            helper_send_response_sig();
+            int response_status = helper_send_response_sig();
+            if (response_status < 0) {
+                io_send_sw(SW_RESPONSE_FAILURE);
+            } else {
+                G_context.state = STATE_APPROVED;
+            }
         }
     } else {
         G_context.state = STATE_NONE;

@@ -26,6 +26,8 @@
 #include "../globals.h"
 #include "../status_words.h"
 
+#include "io.h"
+
 int helper_send_response_address() {
     return io_send_response_pointer(G_context.pk_info.address.raw_bytes,
                                     sizeof(G_context.pk_info.address.raw_bytes),
