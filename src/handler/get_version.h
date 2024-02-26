@@ -9,4 +9,5 @@
  * @return zero or positive integer if success, negative integer otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int handler_get_version(void);

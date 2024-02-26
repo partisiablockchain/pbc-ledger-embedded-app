@@ -13,6 +13,7 @@ typedef void (*action_validate_cb)(bool);
  * @return 0 if success, negative integer otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int ui_display_address(void);
 
 /**
@@ -21,4 +22,5 @@ int ui_display_address(void);
  * @return 0 if success, negative integer otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int ui_display_transaction(void);

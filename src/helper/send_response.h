@@ -1,5 +1,7 @@
 #pragma once
 
+#include "decorators.h" // WARN_UNUSED_RESULT
+
 /**
  * Helper to send APDU response with blockchain address.
  *
@@ -8,6 +10,7 @@
  * @return zero or positive integer if success, -1 otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int helper_send_response_address(void);
 
 /**
@@ -19,4 +22,5 @@ int helper_send_response_address(void);
  * @return zero or positive integer if success, -1 otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int helper_send_response_sig(void);

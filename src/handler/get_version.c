@@ -28,6 +28,7 @@
 #include "../status_words.h"
 #include "../types.h"
 
+WARN_UNUSED_RESULT
 int handler_get_version() {
     _Static_assert(APPVERSION_LEN == 3, "Length of (MAJOR || MINOR || PATCH) must be 3!");
     _Static_assert(MAJOR_VERSION >= 0 && MAJOR_VERSION <= UINT8_MAX,

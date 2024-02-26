@@ -21,6 +21,7 @@ char g_chain_id[CHAIN_ID_MAX_LENGTH + 1];
 /**
  * Formats a blockchain_address_s as a hex string.
  */
+WARN_UNUSED_RESULT
 static bool blockchain_address_format(blockchain_address_s* address, char* out, size_t out_len) {
     memset(g_address, 0, sizeof(g_address));
     return format_hex(address->raw_bytes, ADDRESS_LEN, out, out_len) != -1;

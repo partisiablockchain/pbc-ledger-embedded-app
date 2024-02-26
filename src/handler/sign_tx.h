@@ -23,4 +23,5 @@
  * @return zero or positive integer if success, negative integer otherwise.
  *
  */
+WARN_UNUSED_RESULT
 int handler_sign_tx(buffer_t *chunk_data, bool first_chunk, bool anymore_blocks_after_this_one);

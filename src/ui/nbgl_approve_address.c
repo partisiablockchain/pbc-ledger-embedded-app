@@ -65,6 +65,7 @@ static void continue_review(void) {
     nbgl_useCaseAddressConfirmation(g_address, review_choice);
 }
 
+WARN_UNUSED_RESULT
 int ui_display_address() {
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
         G_context.state = STATE_NONE;

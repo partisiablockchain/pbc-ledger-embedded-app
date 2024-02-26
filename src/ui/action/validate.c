@@ -37,6 +37,7 @@ void validate_address(bool choice) {
     }
 }
 
+WARN_UNUSED_RESULT
 static int crypto_sign_message(void) {
     uint32_t info = 0;
 
