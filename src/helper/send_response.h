@@ -1,6 +1,6 @@
 #pragma once
 
-#include "decorators.h" // WARN_UNUSED_RESULT
+#include "decorators.h"  // WARN_UNUSED_RESULT
 
 /**
  * Helper to send APDU response with blockchain address.

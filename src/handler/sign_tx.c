@@ -20,7 +20,7 @@
 #include <stddef.h>   // size_t
 #include <string.h>   // memset, explicit_bzero
 
-#include "io.h" // io_send_sw
+#include "io.h"  // io_send_sw
 #include "os.h"
 #include "cx.h"
 #include "buffer.h"
