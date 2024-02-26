@@ -1,3 +1,5 @@
+from __future__ import annotations # More sane typing
+
 import dataclasses
 from enum import IntEnum
 from typing import Generator, List, Optional
@@ -55,7 +57,7 @@ class Errors(IntEnum):
     SW_TX_PARSING_FAIL_EXPECTED_LESS_DATA = 0xB00B
 
     @staticmethod
-    def from_code(code: int) -> 'Errors':
+    def from_code(code: int) -> Errors | None:
         for e in Errors:
             if e == code:
                 return e
