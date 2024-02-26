@@ -139,6 +139,4 @@ int handler_sign_tx(buffer_t *chunk_data, bool first_chunk, bool anymore_blocks_
         // We finally have enough information to display UI.
         return ui_display_transaction();
     }
-
-    return 0;
 }
