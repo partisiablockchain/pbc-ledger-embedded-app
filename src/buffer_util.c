@@ -11,13 +11,19 @@ static uint32_t min(uint32_t a, uint32_t b) {
 
 /**
  * Reads as many bytes as possible from the buffer, but at most out_len.
+ *
+ * Cannot overflow the input buffer, and will not ready anything from an
+ * already overflown buffer.
+ *
  * Returns the number of bytes read.
  */
 size_t buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len) {
+    // Choose an amount to read that cannot overflow unless it is already
+    // overflown
     size_t amount_read = min(out_len, buffer->size - buffer->offset);
-    memmove(out, buffer->ptr + buffer->offset, amount_read);
-    buffer_seek_cur(buffer, amount_read);
-    return amount_read;
+
+    bool read_success = buffer_read_bytes_precisely(buffer, out, amount_read);
+    return read_success ? amount_read : 0;
 }
 
 /**
