@@ -6,8 +6,6 @@
 
 #include "buffer.h"
 
-#include "../types.h"
-
 /**
  * Handler for #GET_ADDRESS command. If successfully parse BIP32 path,
  * derive G_context.pk_info.address and send APDU response.

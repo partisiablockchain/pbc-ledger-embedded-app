@@ -5,6 +5,13 @@
 
 Ledger Application for interacting with Partisia Blockchain.
 
+Supported use cases:
+
+- Clear-signing of [MPC Token](https://partisiablockchain.gitlab.io/documentation/pbc-fundamentals/governance-system-smart-contracts-overview.html#mpc-tokens) transfers, with and without memos.
+- Blind-singing of arbitrary transactions of any size on [Partisia Blockchain](https://browser.partisiablockchain.com/)
+  and [Partisia Blockchain Testnet](https://browser.testnet.partisiablockchain.com/). This functionality may put your crypto
+  assets at risk, and must be explicitly enabled through the settings menu.
+
 ## Changes
 
 Based on [Ledger app-boilerplate](https://github.com/LedgerHQ/app-boilerplate),

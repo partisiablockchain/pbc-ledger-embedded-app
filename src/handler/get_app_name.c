@@ -19,6 +19,7 @@
 
 #include "io.h"
 #include "buffer.h"
+#include "os.h"
 
 #include "get_app_name.h"
 #include "../constants.h"
