@@ -100,6 +100,7 @@ UX_FLOW(ux_display_pubkey_flow,
         &ux_display_step_approve,
         &ux_display_step_reject);
 
+WARN_UNUSED_RESULT
 int ui_display_address() {
     // Check current state
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
@@ -174,6 +175,7 @@ UX_STEP_NOCB(ux_display_step_chain_id,
 // #5 screen : reject button
 const ux_flow_step_t* ux_display_transaction_flow[MAX_NUM_STEPS + 1];
 
+WARN_UNUSED_RESULT
 int ui_display_transaction(void) {
     // Check current state
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {

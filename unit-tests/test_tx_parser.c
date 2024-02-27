@@ -730,6 +730,58 @@ static void test_buffer_read_chain_id(void **state) {
     test_variant_buffer_read_chain_id(CHAIN_ID_TESTNET, sizeof(CHAIN_ID_TESTNET) - 1);
 }
 
+static void test_buffer_read_bytes_out_longer(void **state) {
+    (void) state;
+
+    uint8_t raw_buffer[10];
+    buffer_t buf = {.ptr = raw_buffer, .size = sizeof(raw_buffer), .offset = 0};
+
+    uint8_t out_buffer[20];
+    size_t amount_read = buffer_read_bytes(&buf, out_buffer, sizeof(out_buffer));
+    assert_int_equal(amount_read, 10);
+}
+
+static void test_buffer_read_bytes_in_longer(void **state) {
+    (void) state;
+
+    uint8_t raw_buffer[20];
+    buffer_t buf = {.ptr = raw_buffer, .size = sizeof(raw_buffer), .offset = 0};
+
+    uint8_t out_buffer[10];
+    size_t amount_read = buffer_read_bytes(&buf, out_buffer, sizeof(out_buffer));
+    assert_int_equal(amount_read, 10);
+}
+
+static void test_buffer_variant_read_with_offset(size_t offset, size_t expected_read) {
+    uint8_t raw_buffer[10];
+    buffer_t buf = {.ptr = raw_buffer, .size = sizeof(raw_buffer), .offset = offset};
+
+    uint8_t out_buffer[10];
+    size_t amount_read = buffer_read_bytes(&buf, out_buffer, sizeof(out_buffer));
+    assert_int_equal(amount_read, expected_read);
+}
+
+static void test_buffer_read_bytes_equal_size(void **state) {
+    (void) state;
+
+    test_buffer_variant_read_with_offset(0, 10);
+}
+
+static void test_buffer_read_bytes_already_read(void **state) {
+    (void) state;
+
+    test_buffer_variant_read_with_offset(1, 9);
+    test_buffer_variant_read_with_offset(5, 5);
+    test_buffer_variant_read_with_offset(9, 1);
+    test_buffer_variant_read_with_offset(10, 0);
+}
+
+static void test_buffer_read_bytes_already_overflown(void **state) {
+    (void) state;
+
+    test_buffer_variant_read_with_offset(11, 0);
+}
+
 int main() {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_tx_serialization_generic),
@@ -747,6 +799,11 @@ int main() {
         cmocka_unit_test(test_buffer_read_chain_id),
         cmocka_unit_test(test_buffer_read_chain_id_too_long),
         cmocka_unit_test(test_buffer_read_chain_id_fail_to_read_size),
+        cmocka_unit_test(test_buffer_read_bytes_out_longer),
+        cmocka_unit_test(test_buffer_read_bytes_in_longer),
+        cmocka_unit_test(test_buffer_read_bytes_equal_size),
+        cmocka_unit_test(test_buffer_read_bytes_already_read),
+        cmocka_unit_test(test_buffer_read_bytes_already_overflown),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

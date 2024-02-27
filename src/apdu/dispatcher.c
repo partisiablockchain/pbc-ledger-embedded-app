@@ -32,6 +32,7 @@
 #include "../handler/get_address.h"
 #include "../handler/sign_tx.h"
 
+WARN_UNUSED_RESULT
 int apdu_dispatcher(const command_t *cmd) {
     LEDGER_ASSERT(cmd != NULL, "NULL cmd");
 

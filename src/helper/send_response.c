@@ -26,12 +26,16 @@
 #include "../globals.h"
 #include "../status_words.h"
 
+#include "io.h"
+
+WARN_UNUSED_RESULT
 int helper_send_response_address() {
     return io_send_response_pointer(G_context.pk_info.address.raw_bytes,
                                     sizeof(G_context.pk_info.address.raw_bytes),
                                     SW_OK);
 }
 
+WARN_UNUSED_RESULT
 int helper_send_response_sig(void) {
     // Serialize signature
     uint8_t signature_bytes[32 + 32 + 1] = {0};

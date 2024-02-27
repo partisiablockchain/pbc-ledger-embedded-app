@@ -33,6 +33,7 @@
 #include "../ui/display.h"
 #include "../helper/send_response.h"
 
+WARN_UNUSED_RESULT
 int handler_get_address(buffer_t *cdata, bool display) {
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_ADDRESS;
