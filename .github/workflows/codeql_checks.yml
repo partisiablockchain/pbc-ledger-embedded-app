@@ -13,6 +13,9 @@ on:
       - '.github/workflows/*.yml'
       - 'tests/*'
 
+permissions:
+  security-events: write
+
 jobs:
   analyse:
     name: Analyse
