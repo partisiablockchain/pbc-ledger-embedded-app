@@ -12,7 +12,7 @@ static uint32_t min(uint32_t a, uint32_t b) {
 /**
  * Reads as many bytes as possible from the buffer, but at most out_len.
  *
- * Cannot overflow the input buffer, and will not ready anything from an
+ * Cannot overflow the input buffer, and will not read anything from an
  * already overflown buffer.
  *
  * Returns the number of bytes read.
