@@ -116,6 +116,15 @@ static void review_mpc_transfer(void) {
     nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
 }
 
+static void review_blind_transaction_callback_after_initial_warning(void) {
+    nbgl_useCaseReviewStart(&C_app_pbc_64px,
+                            "Review transaction",
+                            "Review blind transaction to interact with PBC contract",
+                            "Reject transaction",
+                            review_blind_transaction,
+                            ask_transaction_rejection_confirmation);
+}
+
 // Public function to start the transaction review
 // - Check if the app is in the right state for transaction review
 // - Format the amount and address strings in g_amount and g_address buffers
@@ -157,12 +166,12 @@ int ui_display_transaction() {
     } else if (!N_storage.allow_blind_signing) {
         // Blind sign warning when disabled
 
-        nbgl_useCaseConfirm(
-            "Review Blind Transaction",
-            "Blind signing is disabled. Enabled it from the settings menu before attempting again.",
-            "Reject transaction",
-            "Reject transaction",
-            confirm_transaction_rejection);
+        nbgl_useCaseConfirm( // TODO: Different icon?
+            "This message cannot be clear-signed",
+            "Enable blind-signing in the settings to sign this transaction",
+            "Exit",
+            "Go to settings", // TODO: Implement go to settings
+            confirm_transaction_rejection); // TODO: Implement functionality implicated
 
     } else {
         // Blind sign
@@ -173,11 +182,11 @@ int ui_display_transaction() {
         }
 
         nbgl_useCaseReviewStart(
-            &C_app_pbc_64px,
-            "Review Blind PBC transaction",
-            "This transaction cannot be securely interpreted. It might put your assets at risk.",
+            &C_app_pbc_64px, // TODO Exclaim icon!
+            "Blind signing",
+            "This operation cannot be securely interpreted by Ledger Stax.\nIt might put your assets at risk.",
             "Reject transaction",
-            review_blind_transaction,
+            review_blind_transaction_callback_after_initial_warning,
             ask_transaction_rejection_confirmation);
     }
 

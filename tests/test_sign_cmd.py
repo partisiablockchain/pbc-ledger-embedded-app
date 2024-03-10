@@ -28,7 +28,6 @@ def enable_blind_sign(firmware, navigator):
 
             # Enable blind sign
             NavIns(NavInsID.TOUCH, (200, 113)),
-            NavInsID.USE_CASE_CHOICE_CONFIRM,
 
             # Exit menu
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
@@ -67,7 +66,7 @@ def move_to_end_and_reject(firmware, navigator, test_name):
             NavInsID.USE_CASE_REVIEW_TAP, [
                 NavInsID.USE_CASE_CHOICE_CONFIRM,
                 NavInsID.USE_CASE_STATUS_DISMISS,
-            ], "Blind signing is disabled", ROOT_SCREENSHOT_PATH, test_name)
+            ], "This message", ROOT_SCREENSHOT_PATH, test_name)
 
 
 def name_for_sign_test(base_test_name, transaction_name, chain_name):
@@ -82,7 +81,9 @@ def wait_for_first_screen_of_review_flow(navigator, timeout=10):
     The first screen of review UI flows will always contain the word "Review".
     '''
     time_left = timeout
-    while not navigator._backend.compare_screen_with_text('Review'):
+    while not (navigator._backend.compare_screen_with_text('Review') or
+               navigator._backend.compare_screen_with_text('Blind Signing') or
+               navigator._backend.compare_screen_with_text('This message')):
         time.sleep(0.1)
         time_left -= 0.1
         assert time_left > 0, 'timeout when waiting for the first screen (First screen must include word "Review")'
