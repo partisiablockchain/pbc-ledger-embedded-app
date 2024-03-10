@@ -48,6 +48,17 @@ static void confirm_transaction_rejection(void) {
     nbgl_useCaseStatus("Transaction rejected", false, ui_menu_main);
 }
 
+static void ui_display_transaction_inner(void);
+
+static void confirm_blind_transaction_blocker(bool exitOrSettings) {
+    // display a status page and go back to main
+    if (exitOrSettings) {
+        confirm_transaction_rejection();
+    } else {
+        ui_menu_settings(ui_display_transaction_inner);
+    }
+}
+
 static void ask_transaction_rejection_confirmation(void) {
     // display a choice to confirm/cancel rejection
     nbgl_useCaseConfirm("Reject transaction?",
@@ -125,11 +136,44 @@ static void review_blind_transaction_callback_after_initial_warning(void) {
                             ask_transaction_rejection_confirmation);
 }
 
+static void ui_display_transaction_inner(void) {
+    // Either setup clear-sign flows or blind-sign flows.
+    if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
+        // MPC Transfer
+        nbgl_useCaseReviewStart(&C_app_pbc_64px,
+                                "Review transaction to send MPC",
+                                NULL,
+                                "Reject transaction",
+                                review_mpc_transfer,
+                                ask_transaction_rejection_confirmation);
+    } else if (!N_storage.allow_blind_signing) {
+        // Blind sign warning when disabled
+
+        nbgl_useCaseChoice(
+            &C_warning64px,
+            "This message cannot be clear-signed",
+            "Enable blind-signing in the settings to sign this transaction",
+            "Exit",
+            "Go to settings",
+            confirm_blind_transaction_blocker);
+
+    } else {
+        // Blind sign
+        nbgl_useCaseReviewStart(
+            &C_round_warning_64px,
+            "Blind signing",
+            "This operation cannot be securely interpreted by Ledger Stax.\nIt might put your assets at risk.",
+            "Reject transaction",
+            review_blind_transaction_callback_after_initial_warning,
+            ask_transaction_rejection_confirmation);
+    }
+}
+
 // Public function to start the transaction review
 // - Check if the app is in the right state for transaction review
 // - Format the amount and address strings in g_amount and g_address buffers
 // - Display the first screen of the transaction review
-int ui_display_transaction() {
+int ui_display_transaction(void) {
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
@@ -152,43 +196,18 @@ int ui_display_transaction() {
     // Either setup clear-sign flows or blind-sign flows.
     if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
         // MPC Transfer
-
         if (!set_g_fields_for_mpc_transfer(&G_context.tx_info.transaction.mpc_transfer)) {
             return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
         }
 
-        nbgl_useCaseReviewStart(&C_app_pbc_64px,
-                                "Review transaction to send MPC",
-                                NULL,
-                                "Reject transaction",
-                                review_mpc_transfer,
-                                ask_transaction_rejection_confirmation);
-    } else if (!N_storage.allow_blind_signing) {
-        // Blind sign warning when disabled
-
-        nbgl_useCaseConfirm( // TODO: Different icon?
-            "This message cannot be clear-signed",
-            "Enable blind-signing in the settings to sign this transaction",
-            "Exit",
-            "Go to settings", // TODO: Implement go to settings
-            confirm_transaction_rejection); // TODO: Implement functionality implicated
-
     } else {
-        // Blind sign
-
         // Display contract address
         if (!set_g_address(&G_context.tx_info.transaction.basic.contract_address)) {
             return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
         }
-
-        nbgl_useCaseReviewStart(
-            &C_app_pbc_64px, // TODO Exclaim icon!
-            "Blind signing",
-            "This operation cannot be securely interpreted by Ledger Stax.\nIt might put your assets at risk.",
-            "Reject transaction",
-            review_blind_transaction_callback_after_initial_warning,
-            ask_transaction_rejection_confirmation);
     }
+
+    ui_display_transaction_inner();
 
     // Start review
     return 0;

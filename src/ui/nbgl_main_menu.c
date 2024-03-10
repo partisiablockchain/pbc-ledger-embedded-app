@@ -34,6 +34,10 @@ void app_quit(void) {
     os_sched_exit(-1);
 }
 
+static void ui_menu_settings_return_to_main_menu(void) {
+    ui_menu_settings(ui_menu_main);
+}
+
 // home page definition
 void ui_menu_main(void) {
 // This parameter shall be set to false if the settings page contains only information
@@ -46,7 +50,7 @@ void ui_menu_main(void) {
                      &C_app_pbc_64px,
                      NULL,
                      SETTINGS_BUTTON_ENABLED,
-                     ui_menu_settings,
+                     ui_menu_settings_return_to_main_menu,
                      app_quit);
 }
 
@@ -109,16 +113,17 @@ static void settings_controls_callback(int token, uint8_t index) {
     }
 }
 
-// settings menu definition
-void ui_menu_settings() {
 #define TOTAL_SETTINGS_PAGE  (2)
 #define INIT_SETTINGS_PAGE   (0)
 #define DISABLE_SUB_SETTINGS (false)
+
+// settings menu definition
+void ui_menu_settings(void (*exit_callback)(void)) {
     nbgl_useCaseSettings(APPNAME,
                          INIT_SETTINGS_PAGE,
                          TOTAL_SETTINGS_PAGE,
                          DISABLE_SUB_SETTINGS,
-                         ui_menu_main,
+                         exit_callback,
                          nav_callback,
                          settings_controls_callback);
 }

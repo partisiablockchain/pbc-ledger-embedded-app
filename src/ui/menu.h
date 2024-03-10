@@ -8,7 +8,7 @@ void ui_menu_main(void);
 /**
  * Show settings menu (App version, developer name and settings).
  */
-void ui_menu_settings(void);
+void ui_menu_settings(void (*exit_callback)(void));
 
 /**
  * Show about submenu (copyright, date).
