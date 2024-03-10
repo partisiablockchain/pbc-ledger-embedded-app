@@ -79,8 +79,9 @@ UX_STEP_CB(ux_menu_back_step, pb, ui_menu_main(), {&C_icon_back, "Back"});
 // #3 loop
 UX_FLOW(ux_menu_settings_flow, &ux_menu_blind_sign_toggle_step, &ux_menu_back_step, FLOW_LOOP);
 
-void ui_menu_settings(void (*_unused_exit_callback)(void)) {
-    // _unused_exit_callback is not used for this graphics library.
+void ui_menu_settings(void (*exit_callback)(void)) {
+    (void) exit_callback;  // Unused for BAGL
+
     bool blind_signing_enabled = N_storage.allow_blind_signing;
 
     snprintf(g_enabled_text,

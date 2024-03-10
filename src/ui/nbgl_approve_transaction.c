@@ -149,23 +149,22 @@ static void ui_display_transaction_inner(void) {
     } else if (!N_storage.allow_blind_signing) {
         // Blind sign warning when disabled
 
-        nbgl_useCaseChoice(
-            &C_warning64px,
-            "This message cannot be clear-signed",
-            "Enable blind-signing in the settings to sign this transaction",
-            "Exit",
-            "Go to settings",
-            confirm_blind_transaction_blocker);
+        nbgl_useCaseChoice(&C_warning64px,
+                           "This message cannot be clear-signed",
+                           "Enable blind-signing in the settings to sign this transaction",
+                           "Exit",
+                           "Go to settings",
+                           confirm_blind_transaction_blocker);
 
     } else {
         // Blind sign
-        nbgl_useCaseReviewStart(
-            &C_round_warning_64px,
-            "Blind signing",
-            "This operation cannot be securely interpreted by Ledger Stax.\nIt might put your assets at risk.",
-            "Reject transaction",
-            review_blind_transaction_callback_after_initial_warning,
-            ask_transaction_rejection_confirmation);
+        nbgl_useCaseReviewStart(&C_round_warning_64px,
+                                "Blind signing",
+                                "This operation cannot be securely interpreted by Ledger Stax.\nIt "
+                                "might put your assets at risk.",
+                                "Reject transaction",
+                                review_blind_transaction_callback_after_initial_warning,
+                                ask_transaction_rejection_confirmation);
     }
 }
 
