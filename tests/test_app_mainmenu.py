@@ -28,17 +28,9 @@ def test_app_mainmenu(firmware, navigator, test_name):
 
             # Enable blind sign
             NavIns(NavInsID.TOUCH, (200, 113)),
-            NavInsID.USE_CASE_CHOICE_CONFIRM,
-
-            # Re-enter settings
-            NavInsID.USE_CASE_SETTINGS_NEXT,
 
             # Disable blind sign
             NavIns(NavInsID.TOUCH, (200, 113)),
-
-            # Attempt to enable blind sign, but refuse
-            NavIns(NavInsID.TOUCH, (200, 113)),
-            NavInsID.USE_CASE_CHOICE_REJECT,
 
             # Exit menu
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT

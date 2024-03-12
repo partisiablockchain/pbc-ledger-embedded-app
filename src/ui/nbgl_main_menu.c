@@ -34,6 +34,10 @@ void app_quit(void) {
     os_sched_exit(-1);
 }
 
+static void ui_menu_settings_return_to_main_menu(void) {
+    ui_menu_settings(ui_menu_main);
+}
+
 // home page definition
 void ui_menu_main(void) {
 // This parameter shall be set to false if the settings page contains only information
@@ -46,7 +50,7 @@ void ui_menu_main(void) {
                      &C_app_pbc_64px,
                      NULL,
                      SETTINGS_BUTTON_ENABLED,
-                     ui_menu_settings,
+                     ui_menu_settings_return_to_main_menu,
                      app_quit);
 }
 
@@ -79,7 +83,7 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
         switches[BLIND_TRANSACTION_SWITCH_ID].initState =
             (nbgl_state_t) N_storage.allow_blind_signing;
         switches[BLIND_TRANSACTION_SWITCH_ID].text = "Blind Signing";
-        switches[BLIND_TRANSACTION_SWITCH_ID].subText = "Allow Blind Signing\nin transactions";
+        switches[BLIND_TRANSACTION_SWITCH_ID].subText = "Enable blind signing";
         switches[BLIND_TRANSACTION_SWITCH_ID].token = BLIND_TRANSACTION_SWITCH_TOKEN;
         switches[BLIND_TRANSACTION_SWITCH_ID].tuneId = TUNE_TAP_CASUAL;
 
@@ -99,48 +103,29 @@ static void set_blind_signing(uint8_t allow) {
     nvm_write((void*) &N_storage.allow_blind_signing, &allow, 1);
 }
 
-/** callback for setting warning choice. */
-static void review_warning_choice(bool confirm) {
-    if (confirm) {
-        set_blind_signing(1);
-    }
-    // return to the settings menu
-    ui_menu_settings();
-}
-
-static void controls_callback(int token, uint8_t index) {
+/** Invoked when pressing buttons in the #ui_menu_settings. */
+static void settings_controls_callback(int token, uint8_t index) {
     UNUSED(index);
     if (token == BLIND_TRANSACTION_SWITCH_TOKEN) {
         // Blind Signing switch touched
 
-        // in this example we display a warning when the user wants
-        // to activate the Blind Signing setting
-        if (!N_storage.allow_blind_signing) {
-            // Display the warning message and ask the user to confirm
-            nbgl_useCaseChoice(&C_warning64px,
-                               "Blind Signing",
-                               "Are you sure to\nallow Blind Signing\nin transactions?",
-                               "I understand, confirm",
-                               "Cancel",
-                               review_warning_choice);
-        } else {
-            set_blind_signing(0);
-        }
+        set_blind_signing(!N_storage.allow_blind_signing);
     }
 }
 
-// settings menu definition
-void ui_menu_settings() {
 #define TOTAL_SETTINGS_PAGE  (2)
 #define INIT_SETTINGS_PAGE   (0)
 #define DISABLE_SUB_SETTINGS (false)
+
+// settings menu definition
+void ui_menu_settings(void (*exit_callback)(void)) {
     nbgl_useCaseSettings(APPNAME,
                          INIT_SETTINGS_PAGE,
                          TOTAL_SETTINGS_PAGE,
                          DISABLE_SUB_SETTINGS,
-                         ui_menu_main,
+                         exit_callback,
                          nav_callback,
-                         controls_callback);
+                         settings_controls_callback);
 }
 
 #endif

@@ -28,7 +28,6 @@ def enable_blind_sign(firmware, navigator):
 
             # Enable blind sign
             NavIns(NavInsID.TOUCH, (200, 113)),
-            NavInsID.USE_CASE_CHOICE_CONFIRM,
 
             # Exit menu
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
@@ -67,7 +66,7 @@ def move_to_end_and_reject(firmware, navigator, test_name):
             NavInsID.USE_CASE_REVIEW_TAP, [
                 NavInsID.USE_CASE_CHOICE_CONFIRM,
                 NavInsID.USE_CASE_STATUS_DISMISS,
-            ], "Blind signing is disabled", ROOT_SCREENSHOT_PATH, test_name)
+            ], "This message", ROOT_SCREENSHOT_PATH, test_name)
 
 
 def name_for_sign_test(base_test_name, transaction_name, chain_name):
@@ -82,7 +81,9 @@ def wait_for_first_screen_of_review_flow(navigator, timeout=10):
     The first screen of review UI flows will always contain the word "Review".
     '''
     time_left = timeout
-    while not navigator._backend.compare_screen_with_text('Review'):
+    while not (navigator._backend.compare_screen_with_text('Review') or
+               navigator._backend.compare_screen_with_text('Blind Signing') or
+               navigator._backend.compare_screen_with_text('This message')):
         time.sleep(0.1)
         time_left -= 0.1
         assert time_left > 0, 'timeout when waiting for the first screen (First screen must include word "Review")'
@@ -114,6 +115,7 @@ def test_sign_blind_transaction(firmware, backend, navigator, test_name,
         # Approve
         move_to_end_and_approve(firmware, navigator, test_name)
 
+    # Assert that we have received signature
     response = client.get_async_response().data
     rs_signature = unpack_sign_tx_response(response)
     assert transaction.verify_signature_with_address(address, rs_signature,
@@ -146,6 +148,59 @@ def test_block_blind_sign(firmware, backend, navigator, test_name,
     # Assert that we have received a refusal
     assert e.value.status == Errors.SW_DENY
     assert len(e.value.data) == 0
+
+
+@pytest.mark.parametrize("transaction_name,transaction",
+                         transaction_examples.BLIND_TRANSACTIONS)
+@pytest.mark.parametrize("chain_id", CHAIN_IDS)
+def test_enable_blind_sign_after_block(firmware, backend, navigator, test_name,
+                          transaction_name, transaction, chain_id):
+    # Only run test for STAX devices
+    if firmware.device != 'stax':
+        return
+
+
+    test_name = name_for_sign_test(test_name, transaction_name, chain_id)
+    client = PbcCommandSender(backend)
+    rapdu = client.get_address(path=KEY_PATH)
+    address = unpack_get_address_response(rapdu.data)
+
+    transaction_bytes = transaction.serialize()
+
+    # Blind signing disabled
+    with client.sign_tx(path=KEY_PATH,
+                        transaction=transaction_bytes,
+                        chain_id=chain_id):
+        # Wait for first screen of the application
+        wait_for_first_screen_of_review_flow(navigator)
+
+        # Should show "exit" or "go to settings"
+        navigator.navigate_until_text_and_compare(
+            NavInsID.USE_CASE_REVIEW_TAP, [
+                # Go to settings
+                NavInsID.USE_CASE_CHOICE_REJECT,
+
+                # Enable blind sign
+                NavInsID.USE_CASE_SETTINGS_NEXT,
+                NavIns(NavInsID.TOUCH, (200, 113)),
+
+                # Exit settings
+                NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT,
+
+                # Should be able to sign.
+                NavInsID.USE_CASE_REVIEW_TAP,
+                NavInsID.USE_CASE_REVIEW_TAP,
+                NavInsID.USE_CASE_REVIEW_TAP,
+                NavInsID.USE_CASE_REVIEW_CONFIRM,
+                NavInsID.USE_CASE_STATUS_DISMISS,
+
+            ], "This message", ROOT_SCREENSHOT_PATH, test_name)
+
+    # Assert that we have received signature
+    response = client.get_async_response().data
+    rs_signature = unpack_sign_tx_response(response)
+    assert transaction.verify_signature_with_address(address, rs_signature,
+                                                     chain_id)
 
 
 @pytest.mark.parametrize("transaction_name,transaction",
