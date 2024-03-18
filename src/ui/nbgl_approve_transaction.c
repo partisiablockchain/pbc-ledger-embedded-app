@@ -121,7 +121,7 @@ static void review_mpc_transfer(void) {
 
     // Info long press
     infoLongPress.icon = &C_app_pbc_64px;
-    infoLongPress.text = "Sign transaction\nto send MPC";
+    infoLongPress.text = "Sign transaction\nto send MPC?";
     infoLongPress.longPressText = "Hold to sign";
 
     nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
