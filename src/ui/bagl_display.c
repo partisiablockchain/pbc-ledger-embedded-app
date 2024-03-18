@@ -85,8 +85,8 @@ UX_STEP_NOCB(ux_display_step_prevent_approve_due_to_blind_signing,
              pnn,
              {
                  &C_icon_warning,
-                 "Blind signing must be",
-                 "enabled in Settings",
+                 "Blind signing",
+                 "not enabled",
              });
 
 // FLOW to display address:
@@ -201,10 +201,6 @@ int ui_display_transaction(void) {
 
     uint8_t ux_flow_idx = 0;
 
-    // Display initial
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
-    ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_chain_id;
-
     bool prevent_approval_due_to_blind_signing =
             G_context.tx_info.transaction.type == GENERIC_TRANSACTION &&
             !N_storage.allow_blind_signing;
@@ -215,6 +211,10 @@ int ui_display_transaction(void) {
         ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_reject;
         ux_display_transaction_flow[ux_flow_idx++] = FLOW_END_STEP;
     } else {
+        // Display initial
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_review;
+        ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_chain_id;
+
         // Either setup clear-sign flows or blind-sign flows.
         if (G_context.tx_info.transaction.type == MPC_TRANSFER) {
             // MPC Transfer
@@ -242,8 +242,6 @@ int ui_display_transaction(void) {
             // Warning
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_blind_sign_warning;
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
-
-            prevent_approval_due_to_blind_signing = !N_storage.allow_blind_signing;
         }
 
         // Setup UI flow

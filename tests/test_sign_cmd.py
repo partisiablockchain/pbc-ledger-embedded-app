@@ -83,6 +83,7 @@ def wait_for_first_screen_of_review_flow(navigator, timeout=10):
     time_left = timeout
     while not (navigator._backend.compare_screen_with_text('Review') or
                navigator._backend.compare_screen_with_text('Blind Signing') or
+               navigator._backend.compare_screen_with_text('Blind signing') or
                navigator._backend.compare_screen_with_text('This message')):
         time.sleep(0.1)
         time_left -= 0.1
