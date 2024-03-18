@@ -202,8 +202,7 @@ int ui_display_transaction(void) {
     uint8_t ux_flow_idx = 0;
 
     bool prevent_approval_due_to_blind_signing =
-            G_context.tx_info.transaction.type == GENERIC_TRANSACTION &&
-            !N_storage.allow_blind_signing;
+            G_context.tx_info.transaction.type == GENERIC_TRANSACTION && !N_storage.allow_blind_signing;
 
     if (prevent_approval_due_to_blind_signing) {
         ux_display_transaction_flow[ux_flow_idx++] =
