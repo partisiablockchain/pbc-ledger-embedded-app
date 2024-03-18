@@ -113,6 +113,8 @@ int ui_display_address() {
         return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
     }
 
+    snprintf(g_address_title, sizeof(g_address_title), "Address");
+
     // Start flow
     g_validate_callback = &ui_action_validate_address;
     ux_flow_init(0, ux_display_pubkey_flow, NULL);
