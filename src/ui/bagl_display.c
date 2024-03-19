@@ -81,13 +81,22 @@ UX_STEP_CB(ux_display_step_reject,
                "Reject",
            });
 
+#ifdef TARGET_NANOS
+UX_STEP_NOCB(ux_display_step_prevent_approve_due_to_blind_signing,
+             bnnn_paging,
+             {
+                 .title = "Error",
+                 .text = "Blind signing must be enabled in Settings",
+             });
+#else
 UX_STEP_NOCB(ux_display_step_prevent_approve_due_to_blind_signing,
              pnn,
              {
-                 &C_icon_warning,
-                 "Blind signing",
-                 "not enabled",
+                 &C_icon_crossmark,
+                 "Blind signing must be",
+                 "enabled in Settings",
              });
+#endif
 
 // FLOW to display address:
 // #1 screen: eye icon + "Confirm Transaction"
