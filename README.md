@@ -70,11 +70,48 @@ supported Ledger devices:
 bash scripts/compile.sh
 ```
 
-### Loading on a physical device
+### Test application on a physical device
 
-From the above-mentioned docker container, run `make load`.
+You can test the application on a physical device by loading it onto the device.
 
-:information_source: Your physical device must be connected, unlocked and the screen showing the dashboard (not inside an application).
+Before you can load the application the prerequisite steps must have been follows:
+
+1. Compile the application to the target device. The artifacts are located in `./build/<target>`.
+   
+   The target for the _Nano S Plus_ is located in the `./build/nanos2` folder.
+
+2. Connect the test device and unlock it. It must display the dashboard and not the application itself.
+
+With these two steps, the application loading can be initialized in one of the two following ways.
+
+#### Using Visual Studio Code extension
+
+1. Open the pbc-ledger-embedded-app project folder in Visual Studio Code
+2. Install the [Ledger Dev Tools](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools) extension
+3. Open the Ledger Developer Tools menu located on the Primary Side Bar (usually located on the left side)
+4. Press the "Select Target" option and choose your target device
+5. Under "Device Operations" press the "Load app on device" option
+
+#### Using the command line
+
+Inside the docker container run command,
+   
+```shell
+python3 -m ledgerblue.runScript  --scp --fileName build/<target>/bin/app.apdu --elfFile build/<target>/bin/app.elf
+```
+
+Where `<target>` is replaced with your target device, e.g. `nanos2`.
+
+#### Finalize loading the application
+
+The terminal should now display two messages, "Generated random root public key" and "Using test master key".
+
+The next steps must be done on the device itself.
+
+1. When the device displays the message "Deny unsafe manager", go through the screens and select the "Allow unsafe manager" option.
+2. When the device displays the message "Uninstall Partisia Blockchain", go through the screens and select the "Confirm action" option.
+3. When the device displays the message "Install app Partisia Blockchain", go through the screens and select "Perform installation" option.
+4. Enter the device pin
 
 ## Test
 
