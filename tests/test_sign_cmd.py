@@ -186,7 +186,7 @@ def test_enable_blind_sign_after_block(firmware, backend, navigator, test_name,
                 NavIns(NavInsID.TOUCH, (200, 113)),
 
                 # Exit settings
-                NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT,
+                NavInsID.USE_CASE_SUB_SETTINGS_EXIT,
 
                 # Should be able to sign.
                 NavInsID.USE_CASE_REVIEW_TAP,
