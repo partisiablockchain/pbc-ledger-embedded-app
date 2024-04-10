@@ -45,13 +45,3 @@ jobs:
         with:
           name: code-coverage
           path: unit-tests/coverage
-
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./unit-tests/coverage.info
-          flags: unittests
-          name: codecov-app-boilerplate
-          fail_ci_if_error: true
-          verbose: true
