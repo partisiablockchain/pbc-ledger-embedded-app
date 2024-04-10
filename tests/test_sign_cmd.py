@@ -30,7 +30,7 @@ def enable_blind_sign(firmware, navigator):
             NavIns(NavInsID.TOUCH, (200, 113)),
 
             # Exit menu
-            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+            NavInsID.USE_CASE_SUB_SETTINGS_EXIT,
         ]
     navigator.navigate(instructions,
                        screen_change_before_first_instruction=False)
