@@ -1,7 +1,6 @@
 import pytest
 import time
 
-from application_client.transaction import Transaction, MpcTokenTransfer
 from application_client.command_sender import PbcCommandSender, Errors
 from application_client.response_unpacker import unpack_get_address_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
