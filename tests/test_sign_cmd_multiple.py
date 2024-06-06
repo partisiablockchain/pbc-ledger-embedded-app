@@ -9,20 +9,24 @@ import test_sign_cmd
 
 
 @pytest.mark.parametrize("chain_id", CHAIN_IDS)
-def test_sign_mpc_transfer_multiple(firmware, backend, navigator, test_name,
-                                    chain_id):
+def test_sign_mpc_transfer_multiple(firmware, backend, navigator,
+                                    test_name: str, chain_id: bytes):
     '''
-    This test checks that no display state is left over between signing of
+    No display state should be left over between signing of different
     transactions.
 
     Leaving any display state, for example a memo, between transactions would
-    mean that the second transaction could be misrepresented.
+    mean that the second transaction could be misrepresented, which can be used
+    in an attack.
     '''
 
     # Determine expected instructions.
-    (instructions_tx_1, instructions_tx_2
-    ) = determine_instructions_for_test_nano_sign_mpc_transfer_multiple(
-        firmware.device, chain_id)
+    instructions_tx_1 = instructions_for_sign_tx(firmware.device,
+                                                 chain_id,
+                                                 with_memo=True)
+    instructions_tx_2 = instructions_for_sign_tx(firmware.device,
+                                                 chain_id,
+                                                 with_memo=False)
 
     # Run test
     # Blind signing disabled
@@ -67,20 +71,17 @@ def test_sign_mpc_transfer_multiple(firmware, backend, navigator, test_name,
         address, rs_signature_2, chain_id)
 
 
-def determine_instructions_for_test_nano_sign_mpc_transfer_multiple(
-    device_id: str,
-    chain_id: bytes,
-) -> tuple[list[NavInsID], list[NavInsID]]:
+def instructions_for_sign_tx(device_id: str, chain_id: bytes,
+                             with_memo: bool) -> list[NavInsID]:
     if device_id == 'stax':
         # Stax
-        instructions_tx = [
+        return [
             NavInsID.USE_CASE_REVIEW_TAP,
             NavInsID.USE_CASE_REVIEW_TAP,
             NavInsID.USE_CASE_REVIEW_TAP,
             NavInsID.USE_CASE_REVIEW_CONFIRM,
             NavInsID.USE_CASE_STATUS_DISMISS,
         ]
-        return (instructions_tx, instructions_tx)
 
     else:
 
@@ -94,24 +95,14 @@ def determine_instructions_for_test_nano_sign_mpc_transfer_multiple(
             if chain_id.endswith(b'Testnet'):
                 chain_id_insns = [NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK]
 
-        instructions_tx_1 = [
-            NavInsID.RIGHT_CLICK,  # Review
-        ] + chain_id_insns + [  # Chain id
-        ] + dest_addr_insns + [  # Dest addr
-            NavInsID.RIGHT_CLICK,  # amount
-            NavInsID.RIGHT_CLICK,  # memo
-            NavInsID.RIGHT_CLICK,  # gas cost
-            NavInsID.BOTH_CLICK,  # approve
-        ]
+        memo_insns = [NavInsID.RIGHT_CLICK] if with_memo else []
 
-        instructions_tx_2 = [
+        return [
             NavInsID.RIGHT_CLICK,  # Review
-        ] + chain_id_insns + [  # Chain id
-        ] + dest_addr_insns + [  # Dest addr
+        ] + chain_id_insns + [     # Chain id
+        ] + dest_addr_insns + [    # Dest addr
             NavInsID.RIGHT_CLICK,  # amount
-            # no memo!
+        ] + memo_insns + [         # memo
             NavInsID.RIGHT_CLICK,  # gas cost
-            NavInsID.BOTH_CLICK,  # approve
+            NavInsID.BOTH_CLICK,   # approve
         ]
-
-        return (instructions_tx_1, instructions_tx_2)
