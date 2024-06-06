@@ -45,7 +45,9 @@ def test_sign_mpc_transfer_multiple(firmware, backend, navigator,
 
         # Approve
         navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name,
-                                       instructions_tx_1)
+                                       instructions_tx_1,
+                                       screen_change_after_last_instruction = True)
+
 
     rs_signature_1 = unpack_sign_tx_response(client.get_async_response().data)
 
@@ -60,7 +62,9 @@ def test_sign_mpc_transfer_multiple(firmware, backend, navigator,
         navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                        test_name,
                                        instructions_tx_2,
-                                       snap_start_idx=len(instructions_tx_1))
+                                       snap_start_idx=len(instructions_tx_1),
+                                       screen_change_after_last_instruction = True)
+
 
     rs_signature_2 = unpack_sign_tx_response(client.get_async_response().data)
 
