@@ -184,6 +184,9 @@ class MpcTokenTransfer(Serializable):
                 len(self.memo).to_bytes(4, byteorder='big'),
                 self.memo,
             ])
+        else:
+            msg = 'MpcTokenTransfer.memo must be either None, int or bytes!'
+            raise Exception(msg)
 
         return b''.join([
             shortname,

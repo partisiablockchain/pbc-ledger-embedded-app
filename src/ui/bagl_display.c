@@ -239,7 +239,7 @@ int ui_display_transaction(void) {
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
             if (g_memo_contains_text) {
-              ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_memo;
+                ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_memo;
             }
 
         } else {

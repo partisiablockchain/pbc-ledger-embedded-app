@@ -111,8 +111,8 @@ static void review_mpc_transfer(void) {
     pairs[ux_flows_idx].item = "Amount";
     pairs[ux_flows_idx++].value = g_transfer_amount;
     if (g_memo_contains_text) {
-      pairs[ux_flows_idx].item = "Memo";
-      pairs[ux_flows_idx++].value = g_memo;
+        pairs[ux_flows_idx].item = "Memo";
+        pairs[ux_flows_idx++].value = g_memo;
     }
     pairs[ux_flows_idx].item = "Fees";
     pairs[ux_flows_idx++].value = g_gas_cost;
