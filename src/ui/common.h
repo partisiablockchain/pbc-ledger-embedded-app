@@ -18,6 +18,8 @@ extern char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 extern char g_address[2 * ADDRESS_LEN + 1];
 // Text buffer for MPC transfer memo
 extern char g_memo[MEMO_MAX_LENGTH + 1];
+// Whether the #g_memo field contains any useful data.
+extern bool g_memo_contains_text;
 // Text buffer for Chain Id
 extern char g_chain_id[CHAIN_ID_MAX_LENGTH + 1];
 
