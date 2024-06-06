@@ -131,9 +131,6 @@ def test_block_blind_sign(firmware, backend, navigator, test_name,
 
     client = PbcCommandSender(backend)
 
-    rapdu = client.get_address(path=KEY_PATH)
-    address = unpack_get_address_response(rapdu.data)
-
     transaction_bytes = transaction.serialize()
 
     # Blind signing disabled
@@ -240,9 +237,6 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
     client = PbcCommandSender(backend)
     chain_id = CHAIN_IDS[0]
 
-    rapdu = client.get_address(path=KEY_PATH)
-    address = unpack_get_address_response(rapdu.data)
-
     transaction_bytes = transaction_examples.TRANSACTION_MPC_TRANSFER.serialize(
     )
 
@@ -274,14 +268,3 @@ def test_sign_tx_refused(firmware, backend, navigator, test_name):
             # Assert that we have received a refusal
             assert e.value.status == Errors.SW_DENY
             assert len(e.value.data) == 0
-
-
-if __name__ == '__main__':
-    from ragger.backend.ledgerwallet import LedgerWalletBackend
-    from ragger.firmware import Firmware
-
-    with LedgerWalletBackend(Firmware.NANOS) as backend:
-        test_sign_valid_transaction(Firmware.NANOS, backend, None, 'test',
-                                    'test',
-                                    TRANSACTION_MPC_TRANSFER_WITH_MEMO_SMALL,
-                                    True)

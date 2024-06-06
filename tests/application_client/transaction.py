@@ -170,12 +170,12 @@ class MpcTokenTransfer(Serializable):
     def __post_init__(self):
         if not isinstance(self.recipient_address, Address):
             raise TransactionError(f"Bad address: '{self.recipient_address}'!")
+        if not isinstance(self.memo, Union[None | int | bytes]):
+            msg = 'MpcTokenTransfer.memo must be either None, int or bytes!'
+            raise TypeError(msg)
 
     def serialize(self) -> bytes:
-        if self.memo is None:
-            shortname = MpcTokenTransfer.SHORTNAME_TRANSFER
-            memo = b''
-        elif isinstance(self.memo, int):
+        if isinstance(self.memo, int):
             shortname = MpcTokenTransfer.SHORTNAME_TRANSFER_WITH_SMALL_MEMO
             memo = self.memo.to_bytes(8, byteorder='big')
         elif isinstance(self.memo, bytes):
@@ -185,8 +185,8 @@ class MpcTokenTransfer(Serializable):
                 self.memo,
             ])
         else:
-            msg = 'MpcTokenTransfer.memo must be either None, int or bytes!'
-            raise Exception(msg)
+            shortname = MpcTokenTransfer.SHORTNAME_TRANSFER
+            memo = b''
 
         return b''.join([
             shortname,

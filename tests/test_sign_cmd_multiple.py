@@ -1,6 +1,6 @@
 import pytest
 
-from ragger.navigator import NavInsID, NavIns
+from ragger.navigator import NavInsID
 from application_client.command_sender import PbcCommandSender
 from application_client.response_unpacker import unpack_get_address_response, unpack_sign_tx_response
 from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_IDS
