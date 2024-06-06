@@ -9,8 +9,8 @@ import test_sign_cmd
 
 
 @pytest.mark.parametrize("chain_id", CHAIN_IDS)
-def test_nano_sign_mpc_transfer_multiple(firmware, backend, navigator,
-                                         test_name, chain_id):
+def test_sign_mpc_transfer_multiple(firmware, backend, navigator, test_name,
+                                    chain_id):
     '''
     This test checks that no display state is left over between signing of
     transactions.
@@ -19,39 +19,10 @@ def test_nano_sign_mpc_transfer_multiple(firmware, backend, navigator,
     mean that the second transaction could be misrepresented.
     '''
 
-    # Only run test for STAX devices
-    if firmware.device == 'stax':
-        return
-
     # Determine expected instructions.
-    dest_addr_insns = [NavInsID.RIGHT_CLICK]
-    chain_id_insns = [NavInsID.RIGHT_CLICK]
-    if firmware.device == 'nanos':
-        dest_addr_insns = [
-            NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK
-        ]
-        if chain_id.endswith(b'Testnet'):
-            chain_id_insns = [NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK]
-
-    instructions_tx_1 = [
-        NavInsID.RIGHT_CLICK,  # Review
-    ] + chain_id_insns + [  # Chain id
-    ] + dest_addr_insns + [  # Dest addr
-        NavInsID.RIGHT_CLICK,  # amount
-        NavInsID.RIGHT_CLICK,  # memo
-        NavInsID.RIGHT_CLICK,  # gas cost
-        NavInsID.BOTH_CLICK,  # approve
-    ]
-
-    instructions_tx_2 = [
-        NavInsID.RIGHT_CLICK,  # Review
-    ] + chain_id_insns + [  # Chain id
-    ] + dest_addr_insns + [  # Dest addr
-        NavInsID.RIGHT_CLICK,  # amount
-        # no memo!
-        NavInsID.RIGHT_CLICK,  # gas cost
-        NavInsID.BOTH_CLICK,  # approve
-    ]
+    (instructions_tx_1, instructions_tx_2
+    ) = determine_instructions_for_test_nano_sign_mpc_transfer_multiple(
+        firmware.device, chain_id)
 
     # Run test
     # Blind signing disabled
@@ -94,3 +65,53 @@ def test_nano_sign_mpc_transfer_multiple(firmware, backend, navigator,
         address, rs_signature_1, chain_id)
     assert transaction_examples.TRANSACTION_MPC_TRANSFER.verify_signature_with_address(
         address, rs_signature_2, chain_id)
+
+
+def determine_instructions_for_test_nano_sign_mpc_transfer_multiple(
+    device_id: str,
+    chain_id: bytes,
+) -> tuple[list[NavInsID], list[NavInsID]]:
+    if device_id == 'stax':
+        # Stax
+        instructions_tx = [
+            NavInsID.USE_CASE_REVIEW_TAP,
+            NavInsID.USE_CASE_REVIEW_TAP,
+            NavInsID.USE_CASE_REVIEW_TAP,
+            NavInsID.USE_CASE_REVIEW_CONFIRM,
+            NavInsID.USE_CASE_STATUS_DISMISS,
+        ]
+        return (instructions_tx, instructions_tx)
+
+    else:
+
+        # Determine expected instructions.
+        dest_addr_insns = [NavInsID.RIGHT_CLICK]
+        chain_id_insns = [NavInsID.RIGHT_CLICK]
+        if device_id == 'nanos':
+            dest_addr_insns = [
+                NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK
+            ]
+            if chain_id.endswith(b'Testnet'):
+                chain_id_insns = [NavInsID.RIGHT_CLICK, NavInsID.RIGHT_CLICK]
+
+        instructions_tx_1 = [
+            NavInsID.RIGHT_CLICK,  # Review
+        ] + chain_id_insns + [  # Chain id
+        ] + dest_addr_insns + [  # Dest addr
+            NavInsID.RIGHT_CLICK,  # amount
+            NavInsID.RIGHT_CLICK,  # memo
+            NavInsID.RIGHT_CLICK,  # gas cost
+            NavInsID.BOTH_CLICK,  # approve
+        ]
+
+        instructions_tx_2 = [
+            NavInsID.RIGHT_CLICK,  # Review
+        ] + chain_id_insns + [  # Chain id
+        ] + dest_addr_insns + [  # Dest addr
+            NavInsID.RIGHT_CLICK,  # amount
+            # no memo!
+            NavInsID.RIGHT_CLICK,  # gas cost
+            NavInsID.BOTH_CLICK,  # approve
+        ]
+
+        return (instructions_tx_1, instructions_tx_2)
