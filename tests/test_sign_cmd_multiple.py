@@ -62,7 +62,7 @@ def test_sign_mpc_transfer_multiple(firmware, backend, navigator,
         navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                        test_name,
                                        instructions_tx_2,
-                                       snap_start_idx=len(instructions_tx_1),
+                                       snap_start_idx=len(instructions_tx_1) + 1,
                                        screen_change_after_last_instruction = True)
 
 
