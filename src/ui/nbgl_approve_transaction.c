@@ -103,20 +103,23 @@ static void review_blind_transaction(void) {
 
 static void review_mpc_transfer(void) {
     // Setup data to display
-    pairs[0].item = "Chain";
-    pairs[0].value = g_chain_id;
-    pairs[1].item = "To";
-    pairs[1].value = g_address;
-    pairs[2].item = "Amount";
-    pairs[2].value = g_transfer_amount;
-    pairs[3].item = "Memo";
-    pairs[3].value = g_memo;
-    pairs[4].item = "Fees";
-    pairs[4].value = g_gas_cost;
+    uint8_t ux_flows_idx = 0;
+    pairs[ux_flows_idx].item = "Chain";
+    pairs[ux_flows_idx++].value = g_chain_id;
+    pairs[ux_flows_idx].item = "To";
+    pairs[ux_flows_idx++].value = g_address;
+    pairs[ux_flows_idx].item = "Amount";
+    pairs[ux_flows_idx++].value = g_transfer_amount;
+    if (g_memo_contains_text) {
+        pairs[ux_flows_idx].item = "Memo";
+        pairs[ux_flows_idx++].value = g_memo;
+    }
+    pairs[ux_flows_idx].item = "Fees";
+    pairs[ux_flows_idx++].value = g_gas_cost;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 5;
+    pairList.nbPairs = ux_flows_idx;
     pairList.pairs = pairs;
 
     // Info long press

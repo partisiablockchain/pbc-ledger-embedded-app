@@ -1,14 +1,10 @@
 import pytest
-import time
 
-from application_client.transaction import Transaction, MpcTokenTransfer
 import application_client.command_sender
 from application_client.command_sender import PbcCommandSender, Errors
-from application_client.response_unpacker import unpack_get_address_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
-from ragger.navigator import NavInsID, NavIns
 from test_sign_cmd import name_for_sign_test
-from utils import ROOT_SCREENSHOT_PATH, KEY_PATH, CHAIN_IDS
+from utils import KEY_PATH, CHAIN_IDS
 import transaction_examples
 
 
@@ -22,8 +18,6 @@ def test_sign_tx_fail_when_parsing_done_but_packet_stream_continues(
     chain_id = CHAIN_IDS[0]
     test_name = name_for_sign_test(test_name, transaction_name, chain_id)
     client = PbcCommandSender(backend)
-    rapdu = client.get_address(path=KEY_PATH)
-    address = unpack_get_address_response(rapdu.data)
 
     # Create packet stream
     #
@@ -53,8 +47,6 @@ def test_sign_tx_fail_when_packet_stream_is_cut_short(firmware, backend,
     chain_id = CHAIN_IDS[0]
     test_name = name_for_sign_test(test_name, transaction_name, chain_id)
     client = PbcCommandSender(backend)
-    rapdu = client.get_address(path=KEY_PATH)
-    address = unpack_get_address_response(rapdu.data)
 
     # Create packet stream.
     #

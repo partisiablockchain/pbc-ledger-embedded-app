@@ -176,14 +176,16 @@ UX_STEP_NOCB(ux_display_step_chain_id,
                  .text = g_chain_id,
              });
 
-#define MAX_NUM_STEPS 9
-
 // FLOW to display transaction information:
 // #1 screen : eye icon + "Review Transaction"
-// #2 screen : display amount
+// #2 screen : display chain id
 // #3 screen : display destination address
-// #4 screen : approve button
-// #5 screen : reject button
+// #4 screen : display amount
+// #5 screen : display memo    (when applicable)
+// #6 screen : display gas cost
+// #7 screen : approve button
+// #8 screen : reject button
+#define MAX_NUM_STEPS 8
 const ux_flow_step_t* ux_display_transaction_flow[MAX_NUM_STEPS + 1];
 
 WARN_UNUSED_RESULT
@@ -236,6 +238,9 @@ int ui_display_transaction(void) {
 
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_address;
             ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_transfer_amount;
+            if (g_memo_contains_text) {
+                ux_display_transaction_flow[ux_flow_idx++] = &ux_display_step_memo;
+            }
 
         } else {
             // Blind sign

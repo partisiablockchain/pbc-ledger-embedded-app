@@ -15,6 +15,8 @@ char g_transfer_amount[TOKEN_SUFFIX_LEN + 1 + PRIu64_MAX_LENGTH + 1];
 char g_address[2 * ADDRESS_LEN + 1];
 // Text buffer for MPC transfer memo
 char g_memo[MEMO_MAX_LENGTH + 1];
+// Whether the #g_memo field contains any useful data.
+bool g_memo_contains_text;
 // Text buffer for Chain Id
 char g_chain_id[CHAIN_ID_MAX_LENGTH + 1];
 
@@ -111,7 +113,9 @@ bool set_g_fields_for_mpc_transfer(mpc_transfer_transaction_type_s* mpc_transfer
     }
 
     // Display Memo
+    g_memo_contains_text = false;
     if (mpc_transfer->memo_length > 0) {
+        g_memo_contains_text = true;
         if (mpc_transfer->has_u64_memo) {
             return set_g_token_amount(g_memo, sizeof(g_memo), "   ", mpc_transfer->memo_u64, 0);
         } else {
